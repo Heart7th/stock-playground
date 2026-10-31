@@ -108,6 +108,7 @@ b { font-weight: 700; }
 /* ---------- home ---------- */
 .home-wrap { flex: 1; overflow-y: auto; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
 .home-hero { text-align: center; padding-top: 4px; }
+.demo-back { align-self: flex-start; font-size: 13px; color: var(--sub); text-decoration: none; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.06); margin-bottom: -6px; }
 .hero-mascot { width: 84px; height: 100px; margin: 0 auto; animation: bob 2.4s ease-in-out infinite; }
 @keyframes bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
 .hero-title { font-size: 28px; font-weight: 800; letter-spacing: 2px; margin-top: 4px; background: linear-gradient(90deg, #ffd36b, #ff8a4c); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -4207,6 +4208,10 @@ b { font-weight: 700; }
   </div>
 </section>`);
     document.getElementById('app').appendChild(home);
+    // 放在 NAS 草稿测试区（/demos/ 下）时，首页显示返回入口
+    if (/\/demos\//.test(location.pathname)) {
+      home.querySelector('.home-wrap').insertAdjacentHTML('afterbegin', '<a class="demo-back" href="../">‹ 草稿测试区</a>');
+    }
     home.addEventListener('click', (e) => {
       const b = e.target.closest('[data-go],[data-act]');
       if (!b) return;
@@ -4250,7 +4255,9 @@ b { font-weight: 700; }
     App.Draw.init();
     App.Unstuck.init();
     buildHome();
-    App.go('home');
+    // 深链接：#hold / #draw / #unstuck 直接进入对应玩法
+    const route = { '#hold': 'hold', '#draw': 'draw', '#unstuck': 'unstuck' }[location.hash];
+    App.go(route || 'home');
     document.addEventListener('pointerdown', () => App.sfx.unlock(), { once: true });
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('dblclick', (e) => e.preventDefault());
