@@ -315,6 +315,28 @@ b { font-weight: 700; }
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
 .menu-list .btn { width: 100%; margin-top: 8px; }
 
+/* ⑤ 新手教学与成交反馈 */
+.uk-coach { display: none; margin: 8px 10px 0; padding: 10px 12px; border-radius: 14px; flex: none;
+  background: linear-gradient(160deg, rgba(255,179,26,0.17), rgba(255,179,26,0.06)); box-shadow: inset 0 0 0 1.5px rgba(255,179,26,0.5); }
+.uk-coach.show { display: block; animation: popIn 0.25s cubic-bezier(.2,.9,.3,1.2); }
+.cc-head { display: flex; align-items: center; gap: 8px; }
+.cc-title { font-size: 15px; font-weight: 800; }
+.cc-text { font-size: 13px; line-height: 1.6; margin-top: 6px; }
+.cc-text b { color: var(--gold); }
+.cc-msg { margin-top: 4px; color: #ffd36b; font-weight: 700; }
+.cc-btns { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.cc-btns .btn { height: 36px; font-size: 14px; padding: 0 18px; border-radius: 11px; }
+.cc-skip { font-size: 12px; color: var(--sub); margin-left: auto; padding: 4px 0 4px 8px; flex: none; white-space: nowrap; }
+.uk-play.tut .uk-log { display: none; }
+.hl-pulse { animation: hlPulse 1.2s ease-in-out infinite; }
+@keyframes hlPulse { 0%,100% { box-shadow: inset 0 0 0 1.5px rgba(255,179,26,0.95), 0 0 0 0 rgba(255,179,26,0); } 50% { box-shadow: inset 0 0 0 1.5px rgba(255,179,26,0.95), 0 0 0 6px rgba(255,179,26,0.28); } }
+.ord-chip[disabled], .qty button[disabled] { opacity: 0.38; pointer-events: none; }
+.q-unit { font-size: 12px; color: var(--sub); margin-right: 2px; }
+.toast.tdone { background: linear-gradient(180deg, #ffd36b, #ffa514); color: #1a1205; font-size: 15px; line-height: 1.55; padding: 10px 18px; box-shadow: 0 8px 26px rgba(255,170,20,0.4); }
+.p-cost { display: inline-block; }
+.p-cost.flash { animation: costFlash 1.3s ease; }
+@keyframes costFlash { 0% { transform: scale(1); } 25% { transform: scale(1.3); text-shadow: 0 0 12px rgba(255,211,107,0.9); } 100% { transform: scale(1); } }
+
 </style>
 </head>
 <body>
@@ -1258,10 +1280,12 @@ b { font-weight: 700; }
       cost: 44, shares: 1000, cash: 8000, days: 20, trades: 12,
       pattern: { type: 'sine', center: 40, amp: 0.07, period: 7, phase: 4.039, noise: 0.006, intra: 0.03 },
       hint: '过去一个月，它在 37～43 元之间来回晃，差不多一周一个来回。高处卖掉一部分，低处再买回来。',
+      // 新手教学：两条线要拖进的目标区间（按本关固定走势算好：第 1 天跌到买入线，第 5 天涨到卖出线）
+      tutorial: { startSell: 41.2, startBuy: 38.6, buy: [37.25, 37.75], sell: [42.8, 43.5], buyHint: '37.5', sellHint: '43' },
     },
     {
       id: 2, name: '宽幅震荡', tag: '耐心', stock: ['煎饼', '航天'],
-      cost: 46, shares: 1000, cash: 10000, days: 24, trades: 14,
+      cost: 46, shares: 1000, cash: 30000, days: 24, trades: 14,
       pattern: { type: 'sine', center: 38, amp: 0.11, period: 10, phase: 3.770, noise: 0.01, intra: 0.032 },
       hint: '振幅更大、节奏更慢。别急着出手，等到真正的高点和低点再挂单。',
     },
@@ -1273,7 +1297,7 @@ b { font-weight: 700; }
     },
     {
       id: 4, name: '阴跌不止', tag: '谨慎补仓', stock: ['辣条', '证券'],
-      cost: 28, shares: 1000, cash: 10000, days: 20, trades: 12,
+      cost: 27, shares: 1000, cash: 20000, days: 20, trades: 12,
       pattern: { type: 'downtrend', center: 25, drift: -0.006, amp: 0.05, period: 6, phase: 0.6, noise: 0.008, intra: 0.028 },
       hint: '一路阴跌，中间偶尔反弹。反弹是卖点，跌下来再接回来；急着补仓只会越补越套。',
     },
@@ -1285,7 +1309,7 @@ b { font-weight: 700; }
     },
     {
       id: 6, name: '假突破', tag: '诱多', stock: ['火锅', '光伏'],
-      cost: 41, shares: 1000, cash: 15000, days: 22, trades: 12,
+      cost: 41, shares: 1000, cash: 30000, days: 22, trades: 12,
       pattern: { type: 'fakeout', center: 35, amp: 0.045, period: 5, start: 8, rise: 0.14, len: 3, fall: 0.2, flen: 6, rec: 0.07, noise: 0.008, intra: 0.028 },
       hint: '某天突然放量冲高，人人都喊突破。追进去的人，后来都怎么样了？',
     },
@@ -1297,15 +1321,15 @@ b { font-weight: 700; }
     },
     {
       id: 8, name: '横盘死鱼', tag: '精细', stock: ['豆浆', '银行'],
-      cost: 21, shares: 2000, cash: 5000, days: 25, trades: 16,
+      cost: 21, shares: 2000, cash: 20000, days: 25, trades: 16,
       pattern: { type: 'sine', center: 20, amp: 0.025, period: 6, phase: 4.189, noise: 0.003, intra: 0.012 },
       hint: '几乎不动，手续费都显得贵。挂单要精确到分，每一次都要赚到。',
     },
     {
       id: 9, name: '妖股', tag: 'Boss', stock: ['臭豆腐', '军工'],
-      cost: 28, shares: 1000, cash: 10000, days: 16, trades: 12,
+      cost: 25, shares: 1000, cash: 20000, days: 18, trades: 12,
       pattern: { type: 'wild', center: 20, amp: 0.16, period: 7, amp2: 0.07, period2: 3.1, jumpP: 0.12, noise: 0.02, intra: 0.045 },
-      hint: '涨停跌停是家常便饭。波动越大机会越大，但一步错就步步错。',
+      hint: '涨停跌停是家常便饭，固定价位的线很快就挂偏了。每天跟着股价把两条线挪一挪，波动越大机会越大。',
     },
   ];
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -3560,13 +3584,20 @@ b { font-weight: 700; }
   const App = root.App, E = App.Engine, U = App.U, C = App.C;
   const { fmtPct, fmtMoney, cls, clamp, round2 } = U;
   const VIS = 32;
-  let scr, cv, els = {}, S = null, raf = 0, drag = null, autoTimer = 0;
+  let scr, cv, els = {}, S = null, raf = 0, fxRaf = 0, drag = null, autoTimer = 0, timers = [];
 
+  const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
   const levelRec = () => App.store.get('uk_levels', {});
+  const tutDone = () => App.store.get('uk_tut_done', false);
   const starsHtml = (n) => [0, 1, 2].map((i) => '<span class="' + (i < n ? 'on' : '') + '">★</span>').join('');
   const stockName = (lv) => lv.stock[0] + lv.stock[1];
   const stockCode = (lv) => 'J' + (10000 + ((typeof lv.id === 'number' ? lv.id : App.hashStr(String(lv.id))) * 7919) % 89999);
   const stoodDays = (lv) => 30 + (App.hashStr('stood' + lv.id) % 320);
+  const rulesHtml = (lv) =>
+    '· 每天挂两条线：<b>卖出线</b>（涨到就卖）和<b>买入线</b>（跌到就买），上下拖动图上的线改价格。<br>' +
+    '· 点「下一天」，股价碰到哪条线，就按那条线的价格成交；成交后只留下下一步该挂的那条线。<br>' +
+    '· 低处买、高处卖，一来一回叫做一次 T。每做完一次，成本价就降一截；成本价 ≤ 现价就解套。<br>' +
+    '<span class="small">今天买的明天才能卖（T+1）· 手续费 0.1%，最低 5 元 · 本关最多成交 ' + lv.trades + ' 笔 · 另有 ' + fmtMoney(lv.cash) + ' 闲钱</span>';
 
   function init() {
     scr = App.el(`
@@ -3580,10 +3611,10 @@ b { font-weight: 700; }
       <button class="mode-card" data-act="endless" style="margin-top:12px"><div class="mc-title">无尽模式 <span class="chip blue">随机股票</span></div>
         <div class="mc-sub">随机走势、随机套牢深度，解完一只再来一只</div><div class="mc-rec r-endless"></div></button>
       <details class="rules"><summary>规则说明</summary><ul>
-        <li>每天开盘前挂两张单：<b>高抛</b>（价格涨到红线就卖）和<b>低吸</b>（跌到绿线就买）。拖动图上的红线、绿线改价格，点按钮开关。</li>
-        <li>今天买的股票，明天才能卖（<b>T+1</b>）。挂单当天有效，价格每天不能超过前一天收盘的 ±10%。</li>
-        <li>每笔手续费 0.1%，最低 5 元；每关的成交笔数有上限。</li>
-        <li><b>成本价</b> =（当初的投入 − 现在的现金）÷ 持股数。成本价 ≤ 现价，就是解套。</li>
+        <li>每天挂两条线：<b>卖出线</b>（涨到就卖）和<b>买入线</b>（跌到就买），上下拖动图上的线改价格，点下方按钮开关。</li>
+        <li>点「下一天」，股价碰到哪条线，就按那条线的价格成交。成交后只留下下一步该挂的那条线，想同时挂两条可以手动打开。</li>
+        <li>低处买、高处卖，一来一回叫做一次 T。每做完一次，成本价就降一截；<b>成本价 ≤ 现价</b>就是解套。</li>
+        <li>今天买的股票，明天才能卖（T+1）。每笔手续费 0.1%，最低 5 元；每关的成交笔数有上限。</li>
         <li>三颗星：解套 / 用时不超过六成天数 / 成交笔数不超过一半。</li></ul></details>
     </div>
   </div>
@@ -3593,16 +3624,21 @@ b { font-weight: 700; }
       <div class="tb-title"><div class="t1 p-title"></div><div class="t2 p-stock"></div></div>
       <button class="icon-btn" data-act="menu" aria-label="菜单">⋯</button></div>
     <div class="uk-goal">
-      <div class="ug-row"><div>成本<b class="num p-cost gold">--</b></div><div>现价<b class="num p-price">--</b></div><div>第<b class="num p-day">1</b>/<span class="p-days">20</span> 天</div></div>
+      <div class="ug-row"><div>你的成本价<b class="num p-cost gold">--</b></div><div>现价<b class="num p-price">--</b></div><div>第<b class="num p-day">1</b>/<span class="p-days">20</span> 天</div></div>
       <div class="ug-bar"><div class="ug-fill p-fill"></div></div>
       <div class="ug-row small"><div>解套进度 <b class="num p-prog">0%</b></div><div class="p-need">还差 <b class="num">--</b></div></div>
     </div>
-    <div class="uk-stage"><canvas class="uk-canvas"></canvas><div class="uk-drag-tip">上下拖动红线/绿线改挂单价</div></div>
+    <div class="uk-coach">
+      <div class="cc-head"><span class="chip gold cc-step">1/5</span><span class="cc-title"></span><button class="cc-skip" data-act="tutskip">跳过教学</button></div>
+      <div class="cc-text"></div>
+      <div class="cc-btns"><button class="btn cc-next" data-act="tutnext">下一步</button></div>
+    </div>
+    <div class="uk-stage"><canvas class="uk-canvas"></canvas><div class="uk-drag-tip">上下拖动红线 / 绿线，改挂单价</div></div>
     <div class="uk-hold"><div>持股 <b class="num p-shares">0</b></div><div>现金 <b class="num p-cash">¥0</b></div><div>成交 <b class="num p-trades">0/0</b></div></div>
     <div class="uk-orders">
-      <button class="ord-chip sell on" data-act="tsell"><span class="dot"></span>高抛<b class="num p-sell">--</b></button>
-      <button class="ord-chip buy on" data-act="tbuy"><span class="dot"></span>低吸<b class="num p-buy">--</b></button>
-      <div class="qty"><button data-act="qminus">−</button><span class="num p-qty">300</span><button data-act="qplus">+</button></div>
+      <button class="ord-chip sell on" data-act="tsell"><span class="dot"></span>卖出<b class="num p-sell">--</b></button>
+      <button class="ord-chip buy on" data-act="tbuy"><span class="dot"></span>买入<b class="num p-buy">--</b></button>
+      <div class="qty"><button class="q-minus" data-act="qminus">−</button><span class="num p-qty">300</span><span class="q-unit">股</span><button class="q-plus" data-act="qplus">+</button></div>
     </div>
     <div class="uk-actions"><button class="btn ghost p-auto" data-act="auto">▶▶ 自动</button><button class="btn p-next" data-act="next">下一天 ▶</button></div>
     <div class="uk-log p-log"></div>
@@ -3613,6 +3649,7 @@ b { font-weight: 700; }
   <div class="overlay center k-menu"><div class="dialog menu-list">
     <div class="dialog-title">菜单</div>
     <button class="btn ghost" data-act="hint">看提示</button>
+    <button class="btn ghost" data-act="tutorial">看新手教学</button>
     <button class="btn ghost" data-act="retry">重新开始本关</button>
     <button class="btn red" data-act="cut">割肉离场</button>
     <button class="btn ghost" data-act="levels">返回关卡列表</button>
@@ -3624,10 +3661,12 @@ b { font-weight: 700; }
     cv = q('.uk-canvas');
     Object.assign(els, {
       select: q('.uk-select'), play: q('.uk-play'), grid: q('.uk-grid'), selSub: q('.sel-sub'), endlessRec: q('.r-endless'),
-      title: q('.p-title'), stock: q('.p-stock'), cost: q('.p-cost'), price: q('.p-price'), day: q('.p-day'), days: q('.p-days'),
+      title: q('.p-title'), stock: q('.p-stock'), goal: q('.uk-goal'), cost: q('.p-cost'), price: q('.p-price'), day: q('.p-day'), days: q('.p-days'),
       fill: q('.p-fill'), prog: q('.p-prog'), need: q('.p-need'), shares: q('.p-shares'), cash: q('.p-cash'), trades: q('.p-trades'),
+      coach: q('.uk-coach'), ccStep: q('.cc-step'), ccTitle: q('.cc-title'), ccText: q('.cc-text'), ccNext: q('.cc-next'), ccSkip: q('.cc-skip'),
+      dragTip: q('.uk-drag-tip'),
       sellChip: q('.ord-chip.sell'), buyChip: q('.ord-chip.buy'), sell: q('.p-sell'), buy: q('.p-buy'), qty: q('.p-qty'),
-      auto: q('.p-auto'), next: q('.p-next'), log: q('.p-log'),
+      qminus: q('.q-minus'), qplus: q('.q-plus'), auto: q('.p-auto'), next: q('.p-next'), log: q('.p-log'),
       intro: q('.k-intro'), introBody: q('.k-intro-body'), end: q('.k-end'), endBody: q('.k-end-body'), menu: q('.k-menu'),
     });
     scr.addEventListener('click', onClick);
@@ -3641,7 +3680,7 @@ b { font-weight: 700; }
 
   function onClick(e) {
     const b = e.target.closest('[data-act],[data-lv]');
-    if (!b) return;
+    if (!b || b.disabled) return;
     const lvId = b.getAttribute('data-lv');
     if (lvId) { const lv = App.LEVELS.find((x) => String(x.id) === lvId); if (lv) openLevel(lv); return; }
     const act = b.getAttribute('data-act');
@@ -3649,6 +3688,8 @@ b { font-weight: 700; }
       case 'home': App.go('home'); break;
       case 'endless': openLevel(endlessCfg()); break;
       case 'go': App.hide(els.intro); App.sfx.tap(); break;
+      case 'go-tut': App.hide(els.intro); App.sfx.tap(); tutStart(); break;
+      case 'go-notut': App.hide(els.intro); App.store.set('uk_tut_done', true); S.tutAvail = false; App.sfx.tap(); break;
       case 'levels':
         if (S && S.phase !== 'end' && S.dayIdx > 0 && !els.end.classList.contains('show') && !els.intro.classList.contains('show')) {
           App.confirm('放弃这一关？', '现在退出，这一关的进度不会保存。', '放弃并退出', showSelect);
@@ -3657,13 +3698,16 @@ b { font-weight: 700; }
       case 'menu': if (S && S.phase !== 'end') App.show(els.menu); break;
       case 'closemenu': App.hide(els.menu); break;
       case 'hint': App.hide(els.menu); App.toast('💡 ' + S.lv.hint, 'ok', 4200); break;
-      case 'retry': App.hide(els.menu); App.hide(els.end); openLevel(S.lv.endless ? S.lv : S.lv, true); break;
+      case 'tutorial': App.hide(els.menu); App.hide(els.end); openLevel(App.LEVELS[0], false, { forceTut: true }); break;
+      case 'retry': App.hide(els.menu); App.hide(els.end); openLevel(S.lv, true); break;
       case 'cut': App.hide(els.menu); cutLoss(); break;
       case 'nextlv': nextLevel(); break;
+      case 'tutnext': if (S && S.tut && S.tut.step === 1) tutGo(2); break;
+      case 'tutskip': tutEnd(); App.toast('已跳过教学，右上角菜单里随时可以重看', '', 2200); break;
       case 'tsell': if (canPlan()) { S.sellOn = !S.sellOn; App.sfx.tap(); refreshOrders(); draw(); } break;
       case 'tbuy': if (canPlan()) { S.buyOn = !S.buyOn; App.sfx.tap(); refreshOrders(); draw(); } break;
-      case 'qminus': if (canPlan()) { S.qty = Math.max(100, S.qty - 100); refreshOrders(); } break;
-      case 'qplus': if (canPlan()) { S.qty = Math.min(maxQty(), S.qty + 100); refreshOrders(); } break;
+      case 'qminus': if (canPlan()) { S.qtyAuto = false; S.qty = Math.max(100, S.qty - 100); refreshOrders(); draw(); } break;
+      case 'qplus': if (canPlan()) { S.qtyAuto = false; S.qty = Math.min(maxQty(), S.qty + 100); refreshOrders(); draw(); } break;
       case 'next': if (canPlan()) runDay(); break;
       case 'auto': setAuto(!S.auto); if (S.auto && canPlan()) runDay(); break;
       default: break;
@@ -3679,9 +3723,10 @@ b { font-weight: 700; }
     for (const lv of App.LEVELS) {
       const r = rec[lv.id], s = r ? r.stars : 0;
       stars += s; if (s) done++;
+      const tag = lv.tutorial && !tutDone() ? '<span class="chip blue">新手教学</span>' : '<span class="chip ' + (lv.tag === 'Boss' ? 'up' : 'gold') + '">' + lv.tag + '</span>';
       els.grid.insertAdjacentHTML('beforeend',
         '<button class="lv-card ' + (s ? 'done' : '') + '" data-lv="' + lv.id + '"><div class="lv-no"><span>第 ' + lv.id + ' 关</span><span>' + lv.days + ' 天</span></div>' +
-        '<div class="lv-name">' + lv.name + '</div><div class="lv-tag"><span class="chip ' + (lv.tag === 'Boss' ? 'up' : 'gold') + '">' + lv.tag + '</span></div>' +
+        '<div class="lv-name">' + lv.name + '</div><div class="lv-tag">' + tag + '</div>' +
         '<div class="lv-stars">' + starsHtml(s) + (r && r.bestDays ? ' <span class="small" style="letter-spacing:0">最快 ' + r.bestDays + ' 天</span>' : '') + '</div></button>');
     }
     els.selSub.textContent = '已解套 ' + done + '/' + App.LEVELS.length + ' 关 · ★ ' + stars + '/' + App.LEVELS.length * 3;
@@ -3697,27 +3742,35 @@ b { font-weight: 700; }
   }
 
   // ---------- 开局 ----------
-  function openLevel(lv, quick) {
+  function openLevel(lv, quick, opts) {
+    opts = opts || {};
     stopAll();
     const series = E.genLevel(lv);
     const start = series.hist[series.H - 1].c;
     const target = lv.shares * lv.cost + lv.cash;
+    const tutAvail = !!lv.tutorial && (!!opts.forceTut || !tutDone());
     S = {
       lv, series, dayIdx: 0, acct: { cash: lv.cash, shares: lv.shares }, tradesLeft: lv.trades, target,
       eq0: lv.shares * start + lv.cash, start,
-      sellOn: true, buyOn: true, sellPrice: round2(start * 1.05), buyPrice: round2(start * 0.95),
-      qty: Math.max(100, Math.round((lv.shares * 0.3) / 100) * 100), auto: false, phase: 'plan',
+      sellOn: true, buyOn: true,
+      sellPrice: tutAvail ? lv.tutorial.startSell : round2(start * 1.05),
+      buyPrice: tutAvail ? lv.tutorial.startBuy : round2(start * 0.95),
+      qty: 100, qtyAuto: true, auto: false, phase: 'plan',
       fills: [], openT: null, tCount: 0, tProfit: 0, logs: [], anim: null,
+      tutAvail, tut: null, tutJustDone: false, costFx: null, frozen: null,
     };
     clampOrders();
     els.select.classList.remove('show'); els.play.classList.add('show');
     [els.end, els.menu].forEach(App.hide);
+    els.play.classList.remove('tut');
+    els.coach.classList.remove('show');
+    els.goal.classList.remove('hl-pulse'); els.next.classList.remove('hl-pulse');
     els.title.textContent = (lv.endless ? '无尽模式' : '第 ' + lv.id + ' 关') + ' · ' + lv.name;
     els.stock.textContent = stockName(lv) + ' ' + stockCode(lv);
     els.days.textContent = lv.days;
-    scr.querySelector('.uk-drag-tip').style.display = App.store.get('uk_dragged', false) ? 'none' : '';
+    els.dragTip.style.display = App.store.get('uk_dragged', false) || tutAvail ? 'none' : '';
     setAuto(false);
-    log('开局：现价 ' + start.toFixed(2) + '，成本 ' + lv.cost.toFixed(2) + '，挂好单子就点「下一天」', 'hl');
+    log('开局：现价 ' + start.toFixed(2) + '，成本价 ' + lv.cost.toFixed(2) + '。挂好两条线，就点「下一天」', 'hl');
     updateHud(); refreshOrders();
     requestAnimationFrame(draw);
     if (!quick) showIntro();
@@ -3725,38 +3778,138 @@ b { font-weight: 700; }
 
   function showIntro() {
     const lv = S.lv;
-    els.introBody.innerHTML =
-      '<div class="menu-head"><div class="mascot">' + App.mascot('sad') + '</div><div><div class="menu-title"></div><div class="menu-sub"></div></div></div>' +
+    const head = '<div class="menu-head"><div class="mascot">' + App.mascot('sad') + '</div><div><div class="menu-title"></div><div class="menu-sub"></div></div></div>' +
       '<div class="intro-story">你在 <b class="num">' + lv.cost.toFixed(2) + '</b> 元买了 <b class="num">' + lv.shares + '</b> 股，现在它只剩 <b class="num down">' + S.start.toFixed(2) + '</b> 元。<br>你已经在山顶站岗 ' + stoodDays(lv) + ' 天了……</div>' +
-      '<div class="intro-goal">🎯 <b>' + lv.days + '</b> 个交易日内解套：总资产回到 <b class="num">' + fmtMoney(S.target) + '</b><br>现在 ' + fmtMoney(S.eq0) + '，还差 <b class="num">' + fmtMoney(S.target - S.eq0) + '</b></div>' +
-      '<div class="intro-hint">💡 <span class="k-hint"></span></div>' +
-      '<div class="intro-rules">· 每天开盘前挂一张「高抛」卖单和一张「低吸」买单，当天价格碰到就成交。拖动图上的红线、绿线改价格。<br>' +
-      '· 今天买的股票明天才能卖（T+1）。手续费 0.1%，最低 5 元。本关最多成交 <b>' + lv.trades + '</b> 笔。<br>' +
-      '· 另有 <b>' + fmtMoney(lv.cash) + '</b> 闲钱可以用来补仓。</div>' +
-      '<button class="btn block" data-act="go">开始自救</button><button class="link-btn" data-act="levels">返回关卡列表</button>';
-    els.introBody.querySelector('.menu-title').textContent = (lv.endless ? '无尽模式' : '第 ' + lv.id + ' 关') + ' · ' + lv.name;
+      '<div class="intro-goal">🎯 <b>' + lv.days + '</b> 个交易日内解套：总资产回到 <b class="num">' + fmtMoney(S.target) + '</b><br>现在 ' + fmtMoney(S.eq0) + '，还差 <b class="num">' + fmtMoney(S.target - S.eq0) + '</b></div>';
+    if (S.tutAvail) {
+      els.introBody.innerHTML = head +
+        '<div class="intro-hint">这一关会手把手带你走一遍：挂买入线、挂卖出线、点下一天，看着成本价降下来。跟着提示做就行，一共 5 步。</div>' +
+        '<button class="btn block" style="margin-top:14px" data-act="go-tut">开始教学</button><button class="link-btn" data-act="go-notut">我会玩，跳过教学</button>';
+    } else {
+      els.introBody.innerHTML = head +
+        '<div class="intro-hint">💡 <span class="k-hint"></span></div><div class="intro-rules">' + rulesHtml(lv) + '</div>' +
+        '<button class="btn block" data-act="go">开始自救</button><button class="link-btn" data-act="levels">返回关卡列表</button>';
+      els.introBody.querySelector('.k-hint').textContent = lv.hint;
+    }
+    els.introBody.querySelector('.menu-title').textContent = (lv.endless ? '无尽模式' : '第 ' + lv.id + ' 关') + ' · ' + lv.name + (S.tutAvail ? '（新手教学）' : '');
     els.introBody.querySelector('.menu-sub').textContent = stockName(lv) + ' · ' + stockCode(lv);
-    els.introBody.querySelector('.k-hint').textContent = lv.hint;
     App.show(els.intro);
+  }
+
+  // ---------- 新手教学（第 1 关，5 步） ----------
+  function tutStart() {
+    S.tut = { step: 1, msg: '', firstFill: null, final: null };
+    els.play.classList.add('tut');
+    renderTut();
+  }
+  function tutGo(step) {
+    S.tut.step = step; S.tut.msg = '';
+    renderTut();
+  }
+  function tutEnd() {
+    if (!S || !S.tut) return;
+    S.tut = null;
+    App.store.set('uk_tut_done', true);
+    els.play.classList.remove('tut');
+    els.coach.classList.remove('show');
+    els.goal.classList.remove('hl-pulse'); els.next.classList.remove('hl-pulse');
+    refreshOrders(); draw();
+  }
+  function tutContent() {
+    const t = S.tut, tu = S.lv.tutorial;
+    switch (t.step) {
+      case 1: return ['你被套住了',
+        '你在 <b>' + S.lv.cost.toFixed(2) + '</b> 元买了 ' + S.lv.shares + ' 股，现在只剩 <b>' + S.start.toFixed(2) + '</b>。图上金色虚线是你的成本价，把它压到现价以下，就算解套。'];
+      case 2: return ['挂买入线：跌到就买',
+        '按住右边绿色的「买」，往下拖到发光的区域（<b>' + tu.buyHint + '</b> 左右，前几天的低点）。闲钱 ' + fmtMoney(S.acct.cash) + ' 只够买 <b>' + S.qty + '</b> 股，股数已经自动设好。'];
+      case 3: return ['挂卖出线：涨到就卖',
+        '按住右边红色的「卖」，往上拖到发光的区域（<b>' + tu.sellHint + '</b> 左右，前几天的高点）。'];
+      case 4: return ['点「下一天」',
+        '两条线都挂好了。点下面的「下一天」：股价碰到哪条线，就按那条线的价格自动成交。'];
+      default: {
+        if (t.final) {
+          const f = t.final;
+          return ['完成一次 T！',
+            '低处买、高处卖，这一来一回赚了 <b>' + fmtMoney(f.profit) + '</b>，成本价从 <b>' + f.from.toFixed(2) + '</b> 降到 <b>' + f.to.toFixed(2) + '</b>' +
+            (equity() >= S.target - 0.5 ? '，已经低于现价，解套了！' : '。以后每关都是这个思路。')];
+        }
+        const ff = t.firstFill;
+        if (ff && ff.type === 'sell') {
+          return ['等它跌下来，完成一次 T',
+            '卖出成交 ' + ff.qty + ' 股 @' + ff.price.toFixed(2) + '，卖出线自动关掉了，只等跌到买入线。继续点「下一天」，一卖一买就叫做一次 T。'];
+        }
+        return ['等它涨上去，完成一次 T',
+          '买入成交 ' + (ff ? ff.qty : S.qty) + ' 股 @' + (ff ? ff.price : S.buyPrice).toFixed(2) + '，买入线自动关掉了，只等涨到卖出线。继续点「下一天」，一买一卖就叫做一次 T。'];
+      }
+    }
+  }
+  function renderTut() {
+    const t = S.tut;
+    if (!t) return;
+    const c = tutContent();
+    els.ccStep.textContent = t.step + '/5';
+    els.ccTitle.textContent = c[0];
+    els.ccText.innerHTML = c[1] + (t.msg ? '<div class="cc-msg">' + t.msg + '</div>' : '');
+    els.ccNext.parentNode.style.display = t.step === 1 ? '' : 'none';
+    els.ccSkip.style.display = t.final ? 'none' : '';
+    els.coach.classList.add('show');
+    els.goal.classList.toggle('hl-pulse', t.step === 1);
+    els.next.classList.toggle('hl-pulse', t.step >= 4 && !t.final);
+    refreshOrders(); draw();
+    if (t.step <= 3) startFx();
+  }
+  function tutAfterDay(res, tDone, won) {
+    const t = S.tut;
+    if (tDone) {
+      if (!t.firstFill) t.firstFill = res.fills[0];
+      t.step = 5; t.final = tDone; t.msg = '';
+      S.tutJustDone = true;
+      renderTut();
+      later(tutEnd, 1800);
+      return;
+    }
+    if (t.step === 4) {
+      if (res.fills.length) { t.firstFill = res.fills[0]; tutGo(5); }
+      else { t.msg = '今天没碰到线，继续点「下一天」。'; renderTut(); }
+    } else if (t.step === 5) {
+      t.msg = '还没碰到' + (S.sellOn ? '卖出线' : '买入线') + '，继续点「下一天」。';
+      renderTut();
+    }
+    if (won) { S.tutJustDone = true; later(tutEnd, 1800); }
   }
 
   // ---------- 账户计算 ----------
   const lastClose = () => (S.dayIdx > 0 ? S.series.days[S.dayIdx - 1].c : S.start);
   const equity = () => S.acct.cash + S.acct.shares * lastClose();
-  const costPrice = () => (S.acct.shares > 0 ? (S.target - S.acct.cash) / S.acct.shares : null);
+  const costOf = (a) => (a.shares > 0 ? (S.target - a.cash) / a.shares : null);
+  const costPrice = () => costOf(S.acct);
   const band = () => {
     const d = S.series.days[Math.min(S.dayIdx, S.lv.days - 1)];
     return { lo: d.lo, hi: d.hi };
   };
-  function maxQty() {
-    const afford = Math.floor(S.acct.cash / (S.buyPrice * 1.001) / 100) * 100;
-    return Math.max(100, Math.floor(Math.max(S.acct.shares, afford) / 100) * 100);
+  function affordQty(price) {
+    let q = Math.floor(S.acct.cash / (price * 1.001) / 100) * 100;
+    while (q >= 100 && q * price + E.lvFee(q * price) > S.acct.cash + 1e-6) q -= 100;
+    return Math.max(0, q);
   }
+  const shareLots = () => Math.floor(S.acct.shares / 100) * 100;
+  // 默认股数：按闲钱能买多少来定；做了一半的 T，就按那一半的股数收尾
+  function suggestedQty() {
+    const afford = affordQty(S.buyPrice), lots = shareLots();
+    let q;
+    if (S.openT && S.openT.type === 'buy') q = Math.min(S.openT.qty, lots);
+    else if (S.openT && S.openT.type === 'sell') q = afford >= 100 ? Math.min(S.openT.qty, afford) : S.openT.qty;
+    else q = Math.min(afford, lots);
+    if (q < 100) q = Math.min(Math.max(100, Math.round((S.lv.shares * 0.3) / 100) * 100), Math.max(100, lots));
+    return q;
+  }
+  function maxQty() { return Math.max(100, shareLots(), affordQty(S.buyPrice)); }
   // 挂单价保留玩家设定的价格；超出当天涨跌停的单子只是当天成交不了，不会被偷偷改价
   function clampOrders() {
     S.sellPrice = round2(Math.max(0.02, S.sellPrice));
     S.buyPrice = round2(Math.max(0.01, S.buyPrice));
     if (S.sellPrice <= S.buyPrice) S.sellPrice = round2(S.buyPrice + 0.02);
+    if (S.qtyAuto) S.qty = suggestedQty();
     S.qty = clamp(S.qty, 100, maxQty());
   }
 
@@ -3785,7 +3938,9 @@ b { font-weight: 700; }
     els.sell.textContent = S.sellPrice.toFixed(2);
     els.buy.textContent = S.buyPrice.toFixed(2);
     els.qty.textContent = S.qty;
-    els.next.disabled = S.phase !== 'plan';
+    const t = S.tut;
+    els.next.disabled = S.phase !== 'plan' || (!!t && (t.step < 4 || !!t.final));
+    [els.auto, els.sellChip, els.buyChip, els.qminus, els.qplus].forEach((b) => { b.disabled = !!t; });
   }
   function log(msg, c) {
     S.logs.unshift({ msg, c: c || '' });
@@ -3824,8 +3979,8 @@ b { font-weight: 700; }
       for (const f of a.res.fills) {
         if (!f.shown && f.k <= a.k) {
           f.shown = true;
-          if (f.type === 'sell') { App.sfx.sell(); App.toast('高抛成交 ' + f.qty + ' 股 @' + f.price.toFixed(2), 'down', 1300); }
-          else { App.sfx.buy(); App.toast('低吸成交 ' + f.qty + ' 股 @' + f.price.toFixed(2), 'up', 1300); }
+          if (f.type === 'sell') { App.sfx.sell(); App.toast('卖出成交 ' + f.qty + ' 股 @' + f.price.toFixed(2), 'down', 1300); }
+          else { App.sfx.buy(); App.toast('买入成交 ' + f.qty + ' 股 @' + f.price.toFixed(2), 'up', 1300); }
           App.buzz(10);
         }
       }
@@ -3837,17 +3992,39 @@ b { font-weight: 700; }
 
   function completeDay() {
     const { res, day } = S.anim;
+    const before = { cash: S.acct.cash, shares: S.acct.shares };
     S.acct = res.acct; S.tradesLeft -= res.tradesUsed;
     S.dayIdx++;
     const dayNo = S.dayIdx;
-    for (const f of res.fills) { S.fills.push({ day: dayNo - 1, type: f.type, price: f.price, qty: f.qty }); matchT(f, dayNo); }
+    // 逐笔重放，算出每笔成交前后的成本价
+    const a = { cash: before.cash, shares: before.shares };
+    let tDone = null;
+    for (const f of res.fills) {
+      const cb = costOf(a);
+      if (f.type === 'sell') { a.cash += f.qty * f.price - f.fee; a.shares -= f.qty; } else { a.cash -= f.qty * f.price + f.fee; a.shares += f.qty; }
+      S.fills.push({ day: dayNo - 1, type: f.type, price: f.price, qty: f.qty });
+      const t = matchT(f, dayNo, cb, costOf(a));
+      if (t) tDone = t;
+    }
     res.notes.forEach((n) => log('第 ' + dayNo + ' 天：' + n));
     if (!res.fills.length && !res.notes.length) log('第 ' + dayNo + ' 天：收盘 ' + day.c.toFixed(2) + '（' + fmtPct((day.c / day.prevClose - 1) * 100) + '），没有成交');
+    // 成交后只留下下一步该挂的那条线
+    const sold = res.fills.some((f) => f.type === 'sell'), bought = res.fills.some((f) => f.type === 'buy');
+    let tip = '';
+    if (sold && !bought) { S.sellOn = false; S.buyOn = true; tip = '卖出线先关掉了，等它跌到买入线再买回来'; }
+    else if (bought && !sold) { S.buyOn = false; S.sellOn = true; tip = '买入线先关掉了，等它涨到卖出线再卖出'; }
+    else if (bought && sold) { S.sellOn = true; S.buyOn = true; }
     S.anim = null;
     S.phase = 'plan';
-    if (S.dayIdx < S.lv.days) clampOrders();
     updateHud(); refreshOrders(); draw();
-    if (equity() >= S.target - 0.5) { win(); return; }
+    if (tDone) celebrateT(tDone);
+    else if (tip && !S.tut) App.toast(tip, 'ok', 2400);
+    const won = equity() >= S.target - 0.5;
+    if (S.tut) tutAfterDay(res, tDone, won);
+    if (won) {
+      if (S.tutJustDone || tDone) { S.phase = 'end'; setAuto(false); refreshOrders(); later(win, S.tutJustDone ? 1900 : 1200); } else win();
+      return;
+    }
     if (S.dayIdx >= S.lv.days) { fail(); return; }
     if (S.tradesLeft <= 0 && !S.noTradeTip) { S.noTradeTip = true; App.toast('成交次数用完了，只能拿着等', 'warn', 2200); }
     if (S.auto) {
@@ -3856,31 +4033,61 @@ b { font-weight: 700; }
     }
   }
 
-  function matchT(f, dayNo) {
-    const verb = f.type === 'sell' ? '高抛' : '低吸';
+  // 记录 T：先买后卖或先卖后买，凑成一对就结算差价
+  function matchT(f, dayNo, costBefore, costAfter) {
+    const verb = f.type === 'sell' ? '卖出' : '买入';
     const o = S.openT;
     if (o && o.type !== f.type) {
       const q = Math.min(o.qty, f.qty);
       const sellP = f.type === 'sell' ? f.price : o.price, buyP = f.type === 'buy' ? f.price : o.price;
       const profit = (sellP - buyP) * q - o.feePer * q - (f.fee / f.qty) * q;
       S.tCount++; S.tProfit += profit;
-      log('第 ' + dayNo + ' 天：' + verb + ' ' + f.qty + ' 股 @' + f.price.toFixed(2) + '，完成一次 T：' + (profit >= 0 ? '赚 ' : '亏 ') + fmtMoney(Math.abs(profit)), profit >= 0 ? 'up' : 'down');
+      const from = o.costStart, to = costAfter;
+      // 日志一行放不下时会截断，所以先写赚了多少和成本价变化
+      log('第 ' + dayNo + ' 天完成一次 T：' + (profit >= 0 ? '赚 ' : '亏 ') + fmtMoney(Math.abs(profit)) +
+        (from != null && to != null ? '，成本价 ' + from.toFixed(2) + ' → ' + to.toFixed(2) : '') + '（' + verb + ' ' + f.qty + ' 股 @' + f.price.toFixed(2) + '）', profit >= 0 ? 'up' : 'down');
       o.qty -= q;
       const rest = f.qty - q;
-      if (o.qty <= 0) S.openT = rest > 0 ? { type: f.type, price: f.price, qty: rest, feePer: f.fee / f.qty } : null;
-    } else {
-      if (o) {
-        const tot = o.qty + f.qty;
-        o.price = (o.price * o.qty + f.price * f.qty) / tot;
-        o.feePer = (o.feePer * o.qty + f.fee) / tot;
-        o.qty = tot;
-      } else S.openT = { type: f.type, price: f.price, qty: f.qty, feePer: f.fee / f.qty };
-      log('第 ' + dayNo + ' 天：' + verb + ' ' + f.qty + ' 股 @' + f.price.toFixed(2) + (f.type === 'sell' ? '，等跌下来接回' : '，等涨上去卖出'), f.type === 'sell' ? 'down' : 'up');
+      if (o.qty <= 0) S.openT = rest > 0 ? { type: f.type, price: f.price, qty: rest, feePer: f.fee / f.qty, costStart: costAfter } : null;
+      return { profit, from, to };
     }
+    if (o) {
+      const tot = o.qty + f.qty;
+      o.price = (o.price * o.qty + f.price * f.qty) / tot;
+      o.feePer = (o.feePer * o.qty + f.fee) / tot;
+      o.qty = tot;
+    } else S.openT = { type: f.type, price: f.price, qty: f.qty, feePer: f.fee / f.qty, costStart: costBefore };
+    log('第 ' + dayNo + ' 天：' + verb + ' ' + f.qty + ' 股 @' + f.price.toFixed(2) + (f.type === 'sell' ? '，等跌下来买回' : '，等涨上去卖出'), f.type === 'sell' ? 'down' : 'up');
+    return null;
+  }
+
+  function celebrateT(t) {
+    const good = t.profit >= 0;
+    if (!S.tut) App.toast('完成一次 T：' + (good ? '赚了 ' : '亏了 ') + fmtMoney(Math.abs(t.profit)) +
+      (t.from != null && t.to != null ? '<br>成本价 ' + t.from.toFixed(2) + ' → ' + t.to.toFixed(2) : ''), good ? 'tdone' : 'down', 3200);
+    if (good) App.sfx.good(); else App.sfx.bad();
+    App.buzz(good ? 30 : 15);
+    els.cost.classList.remove('flash'); void els.cost.offsetWidth; els.cost.classList.add('flash');
+    if (t.from != null && t.to != null && Math.abs(t.from - t.to) >= 0.005) { S.costFx = { from: t.from, t0: performance.now() }; startFx(); }
+  }
+
+  // 需要持续重绘的效果：教学高亮、成本线下滑
+  function startFx() {
+    if (fxRaf) return;
+    const tick = (now) => {
+      fxRaf = 0;
+      if (!S) return;
+      if (S.costFx && now - S.costFx.t0 > 1600) S.costFx = null;
+      if (S.phase !== 'anim') draw();
+      const more = S.costFx || (S.tut && S.tut.step <= 3 && S.phase === 'plan');
+      if (more) fxRaf = requestAnimationFrame(tick);
+    };
+    fxRaf = requestAnimationFrame(tick);
   }
 
   // ---------- 结局 ----------
   function win() {
+    if (!S) return;
     S.phase = 'end'; setAuto(false);
     const lv = S.lv, used = S.dayIdx, tUsed = lv.trades - S.tradesLeft;
     const fast = used <= Math.ceil(lv.days * 0.6), thrift = tUsed <= Math.floor(lv.trades / 2);
@@ -3900,7 +4107,8 @@ b { font-weight: 700; }
       '<div class="end-head"><div class="mascot">' + App.mascot('happy') + '</div><div class="end-title">解套成功！</div>' +
       '<div class="end-sub">用时 <b>' + used + '</b>/' + lv.days + ' 天 · 成交 <b>' + tUsed + '</b>/' + lv.trades + ' 笔<br>' +
       (cp != null ? '成本价 <b class="num">' + cp.toFixed(2) + '</b> ≤ 现价 <b class="num up">' + p.toFixed(2) + '</b>' : '已经清仓回本') +
-      '<br>做了 ' + S.tCount + ' 次完整的 T，价差 ' + (S.tProfit >= 0 ? '赚了 ' : '亏了 ') + fmtMoney(Math.abs(S.tProfit)) + '<br>站岗 ' + (stoodDays(lv) + used) + ' 天，终于下山了</div></div>' +
+      '<br>做了 ' + S.tCount + ' 次完整的 T，差价' + (S.tProfit >= 0 ? '赚了 ' : '亏了 ') + fmtMoney(Math.abs(S.tProfit)) + '<br>站岗 ' + (stoodDays(lv) + used) + ' 天，终于下山了</div></div>' +
+      (S.tutJustDone ? '<div class="res-box" style="margin-top:12px">教学完成！以后每关都是这个思路：看清股价在哪个区间晃，低处买、高处卖，把成本价一点点压下来。</div>' : '') +
       '<div class="stars-big">' + starsHtml(stars) + '</div>' +
       '<div class="star-notes"><span class="up">★ 解套成功</span>　<span class="' + (fast ? 'up' : '') + '">★ 用时 ≤ ' + Math.ceil(lv.days * 0.6) + ' 天</span>　<span class="' + (thrift ? 'up' : '') + '">★ 成交 ≤ ' + Math.floor(lv.trades / 2) + ' 笔</span>' + (isNewBest ? '<br>新纪录！' : '') + '</div>' +
       '<div class="end-btns"><button class="btn ghost" data-act="retry">再玩一次</button>' +
@@ -3917,7 +4125,7 @@ b { font-weight: 700; }
     els.endBody.innerHTML =
       '<div class="end-head"><div class="mascot">' + App.mascot('sad') + '</div><div class="end-title">还没解套……</div>' +
       '<div class="end-sub">' + lv.days + ' 天到了，总资产还差 <b class="num">' + fmtMoney(gap) + '</b>。<br>你在山顶又站了 ' + lv.days + ' 天岗。' +
-      (S.tCount ? '<br>做了 ' + S.tCount + ' 次 T，价差 ' + (S.tProfit >= 0 ? '赚了 ' : '亏了 ') + fmtMoney(Math.abs(S.tProfit)) : '') + '</div></div>' +
+      (S.tCount ? '<br>做了 ' + S.tCount + ' 次 T，差价' + (S.tProfit >= 0 ? '赚了 ' : '亏了 ') + fmtMoney(Math.abs(S.tProfit)) : '') + '</div></div>' +
       '<div class="intro-hint" style="margin-top:14px">💡 <span class="k-hint"></span></div>' +
       '<div class="end-btns"><button class="btn ghost" data-act="levels">关卡列表</button><button class="btn" data-act="retry">再来一次</button></div>';
     els.endBody.querySelector('.k-hint').textContent = lv.hint;
@@ -3928,6 +4136,7 @@ b { font-weight: 700; }
     const loss = S.target - equity();
     App.confirm('割肉离场？', '按现价全部卖出，这一关算失败。<br>实际亏损 <b class="down">' + fmtMoney(loss) + '</b>', '割了', () => {
       S.phase = 'end'; setAuto(false);
+      if (S.tut) tutEnd();
       if (S.lv.endless) { const en = App.store.get('uk_endless', { wins: 0, plays: 0 }); en.plays++; App.store.set('uk_endless', en); }
       els.endBody.innerHTML =
         '<div class="end-head"><div class="mascot">' + App.mascot('sad') + '</div><div class="end-title">割肉离场</div>' +
@@ -3951,17 +4160,17 @@ b { font-weight: 700; }
     const center = Math.round(rng.range(8, 60));
     const per = rng.int(4, 8);
     const P = {
-      sine: { type: 'sine', amp: rng.range(0.06, 0.12), period: per, phase: Math.PI + (2 * Math.PI) / per, noise: 0.008, intra: 0.02 },
-      downtrend: { type: 'downtrend', drift: -rng.range(0.004, 0.007), amp: rng.range(0.04, 0.06), period: rng.int(5, 7), phase: 0.6, noise: 0.008, intra: 0.02 },
-      breakout: { type: 'breakout', amp: 0.05, period: 5, phase: 4.398, start: rng.int(10, 14), rise: rng.range(0.15, 0.22), len: 4, noise: 0.008, intra: 0.02 },
-      fakeout: { type: 'fakeout', amp: 0.045, period: 5, start: rng.int(7, 10), rise: rng.range(0.12, 0.16), len: 3, fall: rng.range(0.18, 0.22), flen: 6, rec: rng.range(0.05, 0.08), noise: 0.008, intra: 0.022 },
-      vshape: { type: 'vshape', drop: rng.range(0.25, 0.32), bottom: rng.int(6, 9), rec: rng.range(0.28, 0.33), noise: 0.01, intra: 0.025 },
-      shakeout: { type: 'shakeout', drift: rng.range(0.003, 0.005), amp: 0.03, period: 6, shocks: [rng.int(2, 5), rng.int(8, 11), rng.int(13, 16)], depth: rng.range(0.1, 0.13), noise: 0.008, intra: 0.022 },
-      wild: { type: 'wild', amp: rng.range(0.14, 0.18), period: rng.int(6, 8), amp2: rng.range(0.06, 0.08), period2: 3.1, jumpP: 0.12, noise: 0.02, intra: 0.04 },
+      sine: { type: 'sine', amp: rng.range(0.06, 0.12), period: per, phase: Math.PI + (2 * Math.PI) / per, noise: 0.008, intra: 0.028 },
+      downtrend: { type: 'downtrend', drift: -rng.range(0.004, 0.007), amp: rng.range(0.04, 0.06), period: rng.int(5, 7), phase: 0.6, noise: 0.008, intra: 0.028 },
+      breakout: { type: 'breakout', amp: 0.05, period: 6, phase: 4.189, start: rng.int(10, 14), rise: rng.range(0.15, 0.22), len: 4, noise: 0.008, intra: 0.028 },
+      fakeout: { type: 'fakeout', amp: 0.045, period: 5, start: rng.int(7, 10), rise: rng.range(0.12, 0.16), len: 3, fall: rng.range(0.18, 0.22), flen: 6, rec: rng.range(0.05, 0.08), noise: 0.008, intra: 0.028 },
+      vshape: { type: 'vshape', drop: rng.range(0.25, 0.32), bottom: rng.int(6, 9), rec: rng.range(0.28, 0.33), noise: 0.01, intra: 0.03 },
+      shakeout: { type: 'shakeout', drift: rng.range(0.003, 0.005), amp: 0.03, period: 6, shocks: [rng.int(2, 5), rng.int(8, 11), rng.int(13, 16)], depth: rng.range(0.1, 0.13), noise: 0.008, intra: 0.028 },
+      wild: { type: 'wild', amp: rng.range(0.14, 0.18), period: rng.int(6, 8), amp2: rng.range(0.06, 0.08), period2: 3.1, jumpP: 0.12, noise: 0.02, intra: 0.045 },
     }[type];
     P.center = center;
     const hints = {
-      sine: '看看过去一个月的高点和低点，在箱体上沿卖、下沿买。',
+      sine: '看看过去一个月的高点和低点，在区间上沿卖、下沿买。',
       downtrend: '一路阴跌，反弹是卖点，急着补仓只会越补越套。',
       breakout: '横盘越久，拉升越猛，别把底仓全卖光。',
       fakeout: '放量冲高未必是真突破，冲高时卖一部分，回落再接。',
@@ -3983,9 +4192,11 @@ b { font-weight: 700; }
   function onDown(e) {
     if (!canPlan() || !S.g) return;
     const p = localY(e), g = S.g;
+    let allowed = ['sell', 'buy'];
+    if (S.tut) allowed = S.tut.step === 2 ? ['buy'] : S.tut.step === 3 ? ['sell'] : [];
     const cand = [];
-    if (S.sellOn) cand.push(['sell', Math.abs(p.y - g.yOf(S.sellPrice))]);
-    if (S.buyOn) cand.push(['buy', Math.abs(p.y - g.yOf(S.buyPrice))]);
+    if (S.sellOn && allowed.indexOf('sell') >= 0) cand.push(['sell', Math.abs(p.y - g.yOf(S.sellPrice))]);
+    if (S.buyOn && allowed.indexOf('buy') >= 0) cand.push(['buy', Math.abs(p.y - g.yOf(S.buyPrice))]);
     cand.sort((a, b) => a[1] - b[1]);
     const lim = p.x > g.plotR - 30 ? 34 : 26;
     if (!cand.length || cand[0][1] > lim) return;
@@ -3994,7 +4205,7 @@ b { font-weight: 700; }
     drag = { which: cand[0][0], id: e.pointerId };
     S.frozen = { lo: g.lo, hi: g.hi };
     App.sfx.tap();
-    if (!App.store.get('uk_dragged', false)) { App.store.set('uk_dragged', true); const t = scr.querySelector('.uk-drag-tip'); if (t) t.style.display = 'none'; }
+    if (!App.store.get('uk_dragged', false)) { App.store.set('uk_dragged', true); els.dragTip.style.display = 'none'; }
   }
   function onMove(e) {
     if (!drag || !S || !S.g) return;
@@ -4012,8 +4223,25 @@ b { font-weight: 700; }
   }
   function onUp() {
     if (!drag) return;
+    const which = drag.which;
     drag = null;
-    if (S) { S.frozen = null; draw(); }
+    if (!S) return;
+    S.frozen = null;
+    if (S.tut && ((S.tut.step === 2 && which === 'buy') || (S.tut.step === 3 && which === 'sell'))) {
+      const range = S.lv.tutorial[which];
+      const p = which === 'buy' ? S.buyPrice : S.sellPrice;
+      if (p >= range[0] && p <= range[1]) {
+        App.sfx.good();
+        App.toast(which === 'buy' ? '买入线挂好了' : '卖出线挂好了', 'ok', 1100);
+        tutGo(S.tut.step + 1);
+        return;
+      }
+      const tooHigh = p > range[1];
+      S.tut.msg = which === 'buy' ? (tooHigh ? '还要再往下一点。' : '拖过头了，往上一点。') : (tooHigh ? '拖过头了，往下一点。' : '还要再往上一点。');
+      renderTut();
+      return;
+    }
+    draw();
   }
 
   // ---------- 绘图 ----------
@@ -4022,30 +4250,36 @@ b { font-weight: 700; }
     const { ctx, w, h } = App.fitCanvas(cv);
     ctx.clearRect(0, 0, w, h);
     const padL = 6, padR = 66, padT = 26, padB = 18;
-    const plotW = w - padL - padR, plotH = h - padT - padB, plotR = padL + plotW;
+    const plotW = w - padL - padR, plotH = h - padT - padB, plotR = padL + plotW, plotB = padT + plotH;
     const all = S.series.hist.concat(S.series.days.slice(0, S.dayIdx));
     const vis = all.slice(-VIS), off = all.length - vis.length;
     const slot = plotW / (VIS + 2.6);
     const x0 = plotR - (vis.length + 2.6) * slot;
     const xOf = (i) => x0 + (i + 0.5) * slot;
     const tmX0 = x0 + vis.length * slot + 0.3 * slot, tmX1 = tmX0 + 2.1 * slot;
-    const playing = S.dayIdx < S.lv.days;
+    const playing = S.dayIdx < S.lv.days && S.phase !== 'end';
     const b = playing ? band() : null;
+    const tutWhich = S.tut && S.phase === 'plan' ? (S.tut.step === 2 ? 'buy' : S.tut.step === 3 ? 'sell' : null) : null;
+    const tutBand = tutWhich ? S.lv.tutorial[tutWhich] : null;
     let lo = Infinity, hi = -Infinity;
     for (const d of vis) { lo = Math.min(lo, d.l); hi = Math.max(hi, d.h); }
     if (b) { lo = Math.min(lo, b.lo); hi = Math.max(hi, b.hi); }
     if (S.sellOn) hi = Math.max(hi, S.sellPrice);
     if (S.buyOn) lo = Math.min(lo, S.buyPrice);
+    if (tutBand) { lo = Math.min(lo, tutBand[0]); hi = Math.max(hi, tutBand[1]); }
     const cp = costPrice();
     const span0 = hi - lo;
     const showCost = cp != null && cp <= hi + span0 * 0.35;
     if (showCost) hi = Math.max(hi, cp);
+    const fx = S.costFx ? Math.min(1, (performance.now() - S.costFx.t0) / 1200) : 1;
+    if (S.costFx && showCost && S.costFx.from <= hi + span0 * 0.35) hi = Math.max(hi, S.costFx.from);
     const pad = (hi - lo) * 0.06;
     lo -= pad; hi += pad;
     if (S.frozen) { lo = S.frozen.lo; hi = S.frozen.hi; }
     const yOf = (p) => padT + ((hi - p) / (hi - lo)) * plotH;
     const pOf = (y) => hi - ((y - padT) / plotH) * (hi - lo);
-    S.g = { yOf, pOf, plotR, lo, hi };
+    S.g = { yOf, pOf, plotR, lo, hi, handles: {} };
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 220);
 
     // 网格
     const span = hi - lo, raw = span / 5, mag = Math.pow(10, Math.floor(Math.log10(raw)));
@@ -4064,19 +4298,45 @@ b { font-weight: 700; }
       ctx.strokeRect(tmX0 + 0.5, yOf(b.hi) + 0.5, tmX1 - tmX0 - 1, yOf(b.lo) - yOf(b.hi) - 1);
       ctx.setLineDash([]);
       ctx.font = '10px ' + C.font; ctx.fillStyle = C.sub; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillText(S.phase === 'anim' ? '今天' : '明天', (tmX0 + tmX1) / 2, padT + plotH + 4);
+      ctx.fillText(S.phase === 'anim' ? '今天' : '明天', (tmX0 + tmX1) / 2, plotB + 4);
     }
-    // 成本线
+    // 教学：要拖进去的目标区间
+    if (tutBand) {
+      const col = tutWhich === 'buy' ? '23,178,106' : '245,71,75';
+      const y1 = yOf(tutBand[1]), y2 = yOf(tutBand[0]);
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.12 + 0.12 * pulse).toFixed(3) + ')';
+      ctx.fillRect(padL, y1, plotW, y2 - y1);
+      ctx.strokeStyle = 'rgba(' + col + ',0.8)'; ctx.setLineDash([4, 3]);
+      ctx.strokeRect(padL + 0.5, y1 + 0.5, plotW - 1, y2 - y1 - 1);
+      ctx.setLineDash([]);
+    }
+    // 成本线（成本价下降时，旧位置淡出，箭头指向新位置）
     if (cp != null) {
-      ctx.font = 'bold 10px ' + C.font; ctx.textAlign = 'left';
+      ctx.font = 'bold 10px ' + C.font;
       if (showCost) {
+        if (S.costFx && fx < 1) {
+          const yOld = yOf(S.costFx.from), yNew = yOf(cp), dir = Math.sign(yNew - yOld) || 1;
+          ctx.globalAlpha = 1 - fx;
+          ctx.strokeStyle = C.gold; ctx.lineWidth = 1.2; ctx.setLineDash([6, 4]);
+          ctx.beginPath(); ctx.moveTo(padL, yOld); ctx.lineTo(plotR, yOld); ctx.stroke(); ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = C.gold; ctx.lineWidth = 2;
+          const ax = plotR - 18, ay = yOld + (yNew - yOld) * Math.min(1, fx * 1.4);
+          ctx.beginPath(); ctx.moveTo(ax, yOld); ctx.lineTo(ax, ay); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ax - 4, ay - 5 * dir); ctx.lineTo(ax, ay); ctx.lineTo(ax + 4, ay - 5 * dir); ctx.stroke();
+          ctx.lineWidth = 1;
+        }
         const y = yOf(cp);
-        ctx.strokeStyle = C.gold; ctx.lineWidth = 1.2; ctx.setLineDash([6, 4]);
-        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(plotR, y); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
-        ctx.fillStyle = C.gold; ctx.textBaseline = 'bottom'; ctx.textAlign = 'right'; ctx.fillText('成本线 ' + cp.toFixed(2), plotR - 4, y - 2);
+        const glow = !!(S.tut && S.tut.step === 1);
+        ctx.strokeStyle = C.gold; ctx.lineWidth = glow ? 2.4 + pulse : 1.2; ctx.setLineDash([6, 4]);
+        if (glow) { ctx.shadowColor = 'rgba(255,179,26,0.8)'; ctx.shadowBlur = 8; }
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(plotR, y); ctx.stroke();
+        ctx.setLineDash([]); ctx.lineWidth = 1; ctx.shadowBlur = 0;
+        ctx.fillStyle = C.gold; ctx.textBaseline = 'bottom'; ctx.textAlign = 'right';
+        ctx.fillText((glow ? '这是你的成本价 ' : '成本价 ') + cp.toFixed(2), plotR - 4, y - 2);
       } else {
-        ctx.fillStyle = C.gold; ctx.textBaseline = 'top';
-        ctx.textAlign = 'right'; ctx.fillText('↑ 成本 ' + cp.toFixed(2) + '（还在上面）', plotR - 4, 7);
+        ctx.fillStyle = C.gold; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
+        ctx.fillText('↑ 成本价 ' + cp.toFixed(2) + '（还在上面）', plotR - 4, 7);
       }
     }
     // K 线
@@ -4123,31 +4383,75 @@ b { font-weight: 700; }
         ctx.fillStyle = '#fff'; ctx.font = 'bold 9px ' + C.font; ctx.fillText(f.type === 'buy' ? 'B' : 'S', x, y + 0.5);
       }
     }
-    // 挂单线与把手
-    const lines = [];
+    // 教学：目标区间的文字画在 K 线上面，靠右放，不和线上的标签打架
+    if (tutBand) {
+      const col = tutWhich === 'buy' ? C.down : C.up;
+      const txt = tutWhich === 'buy' ? '↓ 把绿线拖到这里' : '↑ 把红线拖到这里';
+      ctx.font = 'bold 12px ' + C.font;
+      const tw = ctx.measureText(txt).width + 14, th = 22, tx = plotR - tw - 4;
+      const cy = (yOf(tutBand[1]) + yOf(tutBand[0])) / 2;
+      ctx.fillStyle = 'rgba(16,19,26,0.92)';
+      roundRect(ctx, tx, cy - th / 2, tw, th, 7); ctx.fill();
+      ctx.strokeStyle = col; roundRect(ctx, tx + 0.5, cy - th / 2 + 0.5, tw - 1, th - 1, 7); ctx.stroke();
+      ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(txt, tx + tw / 2, cy + 0.5);
+    }
+    // 挂单线：线上写清楚涨到哪卖、跌到哪买、各多少股
     if (playing || S.phase === 'anim') {
       const ords = S.phase === 'anim' ? S.anim.orders : { sell: S.sellOn && S.tradesLeft > 0 ? 1 : null, buy: S.buyOn && S.tradesLeft > 0 ? 1 : null };
-      lines.push(['sell', S.sellPrice, !!ords.sell, C.up, '卖']);
-      lines.push(['buy', S.buyPrice, !!ords.buy, C.down, '买']);
-    }
-    for (const L of lines) {
-      const y = yOf(L[1]);
-      const outOfReach = b && S.phase !== 'anim' && L[2] && ((L[0] === 'sell' && L[1] > b.hi) || (L[0] === 'buy' && L[1] < b.lo));
-      if (outOfReach) {
-        ctx.font = '10px ' + C.font; ctx.fillStyle = L[3]; ctx.textAlign = 'right'; ctx.textBaseline = L[0] === 'sell' ? 'bottom' : 'top';
-        ctx.fillText(L[0] === 'sell' ? '高过明天涨停价，成交不了' : '低过明天跌停价，成交不了', plotR - 4, L[0] === 'sell' ? y - 3 : y + 3);
+      const lines = [['sell', S.sellPrice, !!ords.sell, C.up, '卖'], ['buy', S.buyPrice, !!ords.buy, C.down, '买']];
+      for (const L of lines) {
+        const which = L[0], price = L[1], active = L[2], col = L[3];
+        const y = yOf(price);
+        const out = !!b && S.phase !== 'anim' && active && ((which === 'sell' && price > b.hi) || (which === 'buy' && price < b.lo));
+        ctx.globalAlpha = !active ? 0.3 : out ? 0.6 : 1;
+        ctx.strokeStyle = col; ctx.lineWidth = active ? 1.5 : 1; ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(plotR, y); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
+        if (S.phase !== 'anim') labelBox(ctx, lineLabel(which, price, active, out), padL + 4, y, col, which === 'sell' ? 'above' : 'below', padT, plotB);
+        const hy = clamp(y, padT + 2, plotB - 2), hx = plotR + 3, hw = padR - 6, hh = 22;
+        S.g.handles[which] = { x: hx, y: hy - hh / 2, w: hw, h: hh };
+        ctx.fillStyle = col;
+        roundRect(ctx, hx, hy - hh / 2, hw, hh, 7); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 11px ' + C.num; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(L[4] + ' ' + price.toFixed(2), hx + hw / 2, hy + 0.5);
+        ctx.globalAlpha = 1;
+        // 教学：给要拖的把手套一个闪烁的圈
+        if (tutWhich === which) {
+          ctx.strokeStyle = 'rgba(255,211,107,' + (0.55 + 0.45 * pulse).toFixed(3) + ')';
+          ctx.lineWidth = 2 + 2 * pulse;
+          roundRect(ctx, hx - 3, hy - hh / 2 - 3, hw + 6, hh + 6, 9); ctx.stroke();
+          ctx.lineWidth = 1;
+        }
       }
-      ctx.globalAlpha = !L[2] ? 0.28 : outOfReach ? 0.55 : 1;
-      ctx.strokeStyle = L[3]; ctx.lineWidth = L[2] ? 1.4 : 1; ctx.setLineDash([5, 4]);
-      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(plotR, y); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
-      const hy = clamp(y, padT + 2, padT + plotH - 2);
-      const hx = plotR + 3, hw = padR - 6, hh = 22;
-      ctx.fillStyle = L[3];
-      roundRect(ctx, hx, hy - hh / 2, hw, hh, 7); ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px ' + C.num; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(L[4] + ' ' + L[1].toFixed(2), hx + hw / 2, hy + 0.5);
-      ctx.globalAlpha = 1;
     }
+  }
+
+  function lineLabel(which, price, active, out) {
+    if (S.tradesLeft <= 0) return '成交次数用完了';
+    if (!active) return which === 'sell' ? '卖出线已关闭' : '买入线已关闭';
+    if (which === 'sell') {
+      const q = Math.min(S.qty, shareLots());
+      if (q < 100) return '没有股票可卖';
+      return '涨到 ' + price.toFixed(2) + ' 卖 ' + q + ' 股' + (out ? ' · 明天涨停也到不了' : '');
+    }
+    const afford = affordQty(price), q = Math.min(S.qty, afford);
+    if (q < 100) return '跌到 ' + price.toFixed(2) + ' 买 · 现金不够';
+    return '跌到 ' + price.toFixed(2) + ' 买 ' + q + ' 股' + (q < S.qty ? '（钱只够这么多）' : '') + (out ? ' · 明天跌停也到不了' : '');
+  }
+  function labelBox(ctx, text, x, y, color, side, top, bottom) {
+    ctx.font = 'bold 11px ' + C.font;
+    const w = ctx.measureText(text).width + 12, h = 19;
+    let ty = side === 'above' ? y - h - 3 : y + 3;
+    if (ty < top - 20) ty = y + 3;
+    if (ty + h > bottom + 16) ty = y - h - 3;
+    const alpha = ctx.globalAlpha;
+    ctx.fillStyle = 'rgba(16,19,26,0.88)';
+    roundRect(ctx, x, ty, w, h, 6); ctx.fill();
+    ctx.globalAlpha = alpha * 0.6; ctx.strokeStyle = color;
+    roundRect(ctx, x + 0.5, ty + 0.5, w - 1, h - 1, 6); ctx.stroke();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + 6, ty + h / 2 + 0.5);
   }
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
@@ -4157,7 +4461,12 @@ b { font-weight: 700; }
     ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
   }
 
-  function stopAll() { cancelAnimationFrame(raf); clearTimeout(autoTimer); drag = null; if (S) S.auto = false; }
+  function stopAll() {
+    cancelAnimationFrame(raf); cancelAnimationFrame(fxRaf); fxRaf = 0;
+    clearTimeout(autoTimer); timers.forEach(clearTimeout); timers = [];
+    drag = null;
+    if (S) S.auto = false;
+  }
   function enter() { showSelect(); }
   function leave() { stopAll(); }
 
