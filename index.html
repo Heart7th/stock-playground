@@ -4402,6 +4402,8 @@ b { font-weight: 700; }
       const lines = [['sell', S.sellPrice, !!ords.sell, C.up, '卖'], ['buy', S.buyPrice, !!ords.buy, C.down, '买']];
       for (const L of lines) {
         const which = L[0], price = L[1], active = L[2], col = L[3];
+        // 关掉的线不画：成交后图上只留下一步该挂的单，想再挂就点下面的按钮
+        if (!(which === 'sell' ? S.sellOn : S.buyOn)) continue;
         const y = yOf(price);
         const out = !!b && S.phase !== 'anim' && active && ((which === 'sell' && price > b.hi) || (which === 'buy' && price < b.lo));
         ctx.globalAlpha = !active ? 0.3 : out ? 0.6 : 1;
@@ -4427,8 +4429,7 @@ b { font-weight: 700; }
   }
 
   function lineLabel(which, price, active, out) {
-    if (S.tradesLeft <= 0) return '成交次数用完了';
-    if (!active) return which === 'sell' ? '卖出线已关闭' : '买入线已关闭';
+    if (S.tradesLeft <= 0 || !active) return '成交次数用完了';
     if (which === 'sell') {
       const q = Math.min(S.qty, shareLots());
       if (q < 100) return '没有股票可卖';
