@@ -583,6 +583,42 @@ b { font-weight: 700; }
 .bh-rk-v b { display: block; font-size: 14px; }
 .bh-rk-v span { font-size: 11px; color: var(--sub); }
 .bh-sticky { position: sticky; bottom: 0; padding-top: 12px; background: linear-gradient(rgba(22,27,37,0), var(--card) 45%); }
+/* ⑧ 联机（内测） */
+.bh-online-card { box-shadow: inset 0 0 0 1.5px rgba(91,140,255,0.55); background: linear-gradient(160deg, rgba(91,140,255,0.14), var(--card2)); }
+.bh-online-card .mc-title { color: #a9c2ff; }
+.bh-solo-t { font-size: 12px; color: var(--sub); margin: 6px 2px 8px; letter-spacing: 1px; }
+.bh-net-note { font-size: 13px; color: var(--gold); line-height: 1.55; background: rgba(255,179,26,0.08); border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+.bh-field { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px; border-radius: 14px; background: var(--card2); margin: 12px 0 10px; }
+.bh-field span { font-size: 14px; color: var(--sub); flex: none; }
+.bh-field input, .bh-join input { flex: 1; min-width: 0; height: 42px; border: 0; outline: 0; border-radius: 10px; background: rgba(255,255,255,0.07); color: var(--text); font-size: 16px; padding: 0 12px;
+  -webkit-user-select: text; user-select: text; font-family: inherit; }
+.bh-emojis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
+.bh-emojis button { height: 42px; border-radius: 12px; background: rgba(255,255,255,0.05); font-size: 22px; }
+.bh-emojis button.on { box-shadow: inset 0 0 0 2px var(--gold); background: rgba(255,179,26,0.1); }
+.bh-join { display: flex; gap: 8px; margin-top: 10px; }
+.bh-join input { letter-spacing: 6px; text-align: center; font-family: var(--num); font-size: 20px; }
+.bh-join .btn { flex: none; width: 96px; }
+.bh-room-code { text-align: center; margin: 2px 0 10px; }
+.bh-room-code span { display: block; font-size: 12px; color: var(--sub); }
+.bh-room-code b { display: block; font-size: 46px; letter-spacing: 10px; color: var(--gold); line-height: 1.1; margin-top: 2px; }
+.bh-people { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 6px; margin: 14px 0 12px; }
+.bh-person { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
+.bh-person b { font-size: 12px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.bh-person span { font-size: 10px; color: var(--sub); }
+.bh-person.off { opacity: 0.4; }
+.bh-person.bot .bh-av { opacity: 0.6; }
+.bh-seg { display: flex; gap: 6px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 4px; margin-bottom: 10px; }
+.bh-seg button { flex: 1; height: 36px; border-radius: 9px; font-size: 14px; font-weight: 700; color: var(--sub); }
+.bh-seg button.on { background: var(--card); color: var(--gold); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.bh-seg button[disabled] { opacity: 0.35; }
+.bh-waiting { text-align: center; font-size: 14px; color: var(--sub); padding: 14px 0 6px; line-height: 1.6; }
+.bh-p.hm .bh-nm { color: #a9c2ff; font-weight: 700; }
+.bh-p.hm .bh-av { box-shadow: inset 0 0 0 1.5px rgba(91,140,255,0.6); }
+.bh-p.hm.in .bh-av { box-shadow: inset 0 0 0 2px rgba(245,71,75,0.8), 0 0 0 2px rgba(91,140,255,0.5); }
+.bh-conn { position: absolute; left: 50%; top: calc(max(10px, env(safe-area-inset-top)) + 52px); transform: translateX(-50%); z-index: 70; padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,140,30,0.96); color: #1a1205; font-size: 13px; font-weight: 700; display: none; white-space: nowrap; }
+.bh-conn.show { display: block; }
+.bh-vote-left, .bh-vote-wait { color: var(--gold); font-weight: 700; }
 
 </style>
 </head>
@@ -6088,7 +6124,8 @@ b { font-weight: 700; }
   const STOCKS = ['韭菜科技', '画饼控股', '割肉传媒', '接盘股份', '泡沫智能', '套牢电子', '站岗生物', '空气能源'];
 
   // ---------- 开局 ----------
-  // opts: { seed, n0（含自己）, lateJoin, mode: 'plain' | 'banker' | 'me' }
+  // opts: { seed, n0（含真人）, lateJoin, mode: 'plain' | 'banker' | 'me',
+  //         humans: [{ name, emoji }]（联机时有多个真人，单机默认就是“你”）, bankerPool: 'bots' | 'all'（庄家从谁里面挑） }
   function create(opts) {
     const seed = opts.seed != null ? opts.seed : Date.now();
     const S = {
@@ -6096,7 +6133,10 @@ b { font-weight: 700; }
       mode: opts.mode || 'plain', pl: [], buyQ: [], sellQ: [], hx: [0], recent: [], log: [], feed: [], shoutLog: [],
       seal: null, sealHist: [], dumped: false, dumpT: -1, bankerId: -1, inForecast: false, over: false,
     };
-    const n0 = clamp(Math.round(opts.n0 || 6), 3, 12);
+    const humans = opts.humans && opts.humans.length ? opts.humans.slice(0, 12) : [{ name: '你', emoji: '🥬', solo: true }];
+    const H = humans.length;
+    const n0 = clamp(Math.round(Math.max(opts.n0 || 6, H)), Math.max(3, H), 12);
+    const B = n0 - H; // 电脑股民补的座位
     const joins = opts.lateJoin ? clamp(Math.round(n0 * 0.4), 1, 4) : 0;
     const total = n0 + joins;
     S.cfg = { n0, joins, lambda: PUSH / (total * (CASH0 / P0)), capTotal: total * (CASH0 / P0) };
@@ -6111,16 +6151,17 @@ b { font-weight: 700; }
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd(S) * (i + 1)); const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp; }
     const take = (pred) => { const i = pool.findIndex(pred); return i >= 0 ? pool.splice(i, 1)[0] : pool.shift(); };
     const seats = [];
-    seats.push(take((c) => c.type === 'influencer' || c.type === 'whale' || c.type === 'momentum'));
-    if (n0 - 1 >= 2) seats.push(take((c) => c.type === 'diamond' || c.type === 'follower' || c.type === 'fund'));
-    while (seats.length < n0 - 1) seats.push(pool.shift());
+    if (B >= 1) seats.push(take((c) => c.type === 'influencer' || c.type === 'whale' || c.type === 'momentum'));
+    if (B >= 2) seats.push(take((c) => c.type === 'diamond' || c.type === 'follower' || c.type === 'fund'));
+    while (seats.length < B) seats.push(pool.shift());
     const late = [];
     for (let k = 0; k < joins; k++) late.push(take((c) => c.type === 'herd' || c.type === 'follower' || c.type === 'whale' || c.type === 'gambler'));
-    addPlayer(S, { key: 'me', name: '你', emoji: '🥬', type: 'human', tag: '你' }, true, 0);
+    humans.forEach((h, i) => addPlayer(S, h.solo ? { key: 'me', name: '你', emoji: '🥬', type: 'human', tag: '你' } : { key: 'h' + i, name: h.name, emoji: h.emoji, type: 'human', tag: '玩家' }, true, 0));
     seats.forEach((c) => addPlayer(S, c, false, 0));
     late.forEach((c) => addPlayer(S, c, false, rr(S, 8, 50)));
-    // 庄家：庄家局在对手里随机挑一个；“我当庄家”就是你
-    if (S.mode === 'banker') S.bankerId = 1 + Math.floor(rnd(S) * (n0 - 1));
+    // 庄家：单机庄家局在电脑股民里挑，“我当庄家”就是你；联机庄家局从所有人里随机挑（可能是真人）
+    const pool2 = opts.bankerPool || 'bots';
+    if (S.mode === 'banker') S.bankerId = pool2 === 'all' || B < 1 ? Math.floor(rnd(S) * n0) : H + Math.floor(rnd(S) * B);
     if (S.mode === 'me') S.bankerId = 0;
     if (S.bankerId >= 0) {
       const b = S.pl[S.bankerId];
@@ -6133,6 +6174,14 @@ b { font-weight: 700; }
         text: rpick(S, bad ? NEWS.bad : NEWS.good).replace('{s}', S.stock) };
     }
     return S;
+  }
+
+  // 联机时真人中途进场：带着 10 万现金，马上能交易
+  function addHuman(S, h) {
+    const p = addPlayer(S, { key: 'h' + S.pl.length, name: h.name, emoji: h.emoji, type: 'human', tag: '玩家' }, true, S.t * DT);
+    p.active = true; p.peak = priceOf(S.x);
+    pushFeed(S, { kind: 'join', id: p.id });
+    return p.id;
   }
 
   function addPlayer(S, c, human, joinT) {
@@ -6228,7 +6277,7 @@ b { font-weight: 700; }
     if (side === 'buy') {
       // 1) 跌停时先买排队卖的
       if (S.sellQ.length) {
-        const n = Math.min(q, pl ? Math.floor(pl.cash / DOWN) : q);
+        const n = Math.min(q, pl ? lot100(pl.cash / DOWN) : q);
         const got = eatQueue(S, S.sellQ, 'buy', n, DOWN, pl);
         take(got, DOWN); q -= got;
       }
@@ -6236,7 +6285,7 @@ b { font-weight: 700; }
       if (q > 0 && S.x < XUP - 1e-12) {
         const room = (XUP - S.x) / lam;
         let n = Math.min(q, room);
-        if (pl) { const aff = (Math.log(Math.exp(S.x) + (pl.cash * lam) / P0) - S.x) / lam; n = Math.min(n, aff); }
+        if (pl) { const aff = (Math.log(Math.exp(S.x) + (pl.cash * lam) / P0) - S.x) / lam; if (aff < n) n = lot100(aff); } // 钱不够时按整手（100 股）买
         n = Math.floor(n);
         const hit = n >= Math.floor(room) && q > n; // 买到涨停：价格贴住涨停价，剩下的去排队
         if (n > 0 || hit) {
@@ -6246,7 +6295,7 @@ b { font-weight: 700; }
       }
       // 3) 涨停了就排队
       if (q > 0 && pl && S.x >= XUP - 1e-9) {
-        const n = Math.min(q, Math.floor(pl.cash / UP));
+        const n = Math.min(q, lot100(pl.cash / UP));
         if (n > 0) { pl.cash -= n * UP; pl.resCash += n * UP; pl.qBuy += n; S.buyQ.push({ id: pl.id, q: n }); queued = n; }
       }
     } else {
@@ -6320,7 +6369,7 @@ b { font-weight: 700; }
     const sealQ = S.x >= XUP - 1e-9 ? qSum(S.buyQ) : 0;
     const prevSeal = S.sealHist.length > 20 ? S.sealHist[S.sealHist.length - 21] : 0;
     let inv = 0, eqs = 0;
-    for (const p of S.pl) { if (!p.active) continue; const v = p.shares * priceOf(x); inv += v; eqs += p.cash + p.resCash + v; }
+    for (const p of S.pl) { if (!p.active) continue; const v = p.shares * priceOf(x); inv += v; eqs += p.cash - p.hidCash + p.resCash + v; }
     return {
       p: priceOf(x), m1: x - at(15), m3: x - at(40), m10: x - at(100), fromHi10: x - hi10, atHi10: x >= hi10 - 0.002,
       buys3, sells3, sealUp: S.x >= XUP - 1e-9 && S.buyQ.length > 0, sealQ, sealTrend: prevSeal > 0 ? sealQ / prevSeal - 1 : 0,
@@ -6591,7 +6640,9 @@ b { font-weight: 700; }
 
   // ---------- 投票揪庄家 ----------
   // humanVote：你投的人（你当庄家时传 null）。返回每个人的票、被揪出的人、庄家是谁、分钱结果
+  // humanVote：单机传你投的人（你当庄家时传 null）；联机传 { 玩家id: 投给谁 }，没投的真人算弃权
   function vote(S, humanVote) {
+    const hv = humanVote != null && typeof humanVote === 'object' ? humanVote : { 0: humanVote };
     const res = S.result, C = res.clues;
     const voters = S.pl.filter((p) => p.active || p.joinT <= DUR);
     const cand = S.pl;
@@ -6610,7 +6661,7 @@ b { font-weight: 700; }
     const ballots = [];
     for (const v of voters) {
       let pick = null;
-      if (v.human) pick = humanVote;
+      if (v.human) { pick = hv[v.id]; if (pick == null || pick === v.id || !S.pl[pick]) pick = null; }
       else {
         let best = -1e9;
         const w = [rr(S, 0, 0.8), rr(S, 0.3, 1.8), rr(S, 0.1, 1.1)];
@@ -6648,14 +6699,15 @@ b { font-weight: 700; }
 
   App.BagEngine = {
     DT, DUR, TICKS, P0, UP, DOWN, XUP, XDN, CASH0, LOT, CAST, ARCH, SHOUTS, HUMAN_SHOUTS,
-    create, step, order, cancelSide, shout, dump, forecast, settle, vote, ranking, features, priceOf, qSum,
+    create, addHuman, step, order, cancelSide, shout, dump, forecast, settle, vote, ranking, features, priceOf, qSum,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
 <script>
 /* ⑧ 谁是接盘侠：一群人炒同一只股票，谁买谁推高，谁卖谁砸低。
- * 房间人数 3–12 人可调，还可以让人中途进场；可以喊单带节奏；庄家局收盘后投票揪庄家。 */
+ * 单机：房间人数 3–12 人可调，还可以让人中途进场；可以喊单带节奏；庄家局收盘后投票揪庄家。
+ * 联机（内测）：连上 bag-server，开房间 / 用房间码加入，行情和撮合都在服务器上算，这里只负责显示和发指令。 */
 (function (root) {
   'use strict';
   const App = root.App, U = App.U, C = App.C;
@@ -6663,6 +6715,8 @@ b { font-weight: 700; }
   const { fmtPct, fmtMoney, cls, clamp } = U;
   const fmtQ = (q) => (q >= 10000 ? (q / 10000).toFixed(q % 10000 ? 1 : 0) + ' 万' : String(Math.round(q)));
   const sec = (tick) => Math.round(tick * E.DT);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const NET_EMOJIS = ['🥬', '🐂', '🐻', '🦊', '🐼', '🐯', '🐸', '🐵', '🐔', '🐧', '🦁', '🐰'];
 
   const MODES = {
     plain: { name: '抢跑局', sub: '没有庄家，大家各凭本事。收盘还拿着的，第二天按“一日游”价结算。' },
@@ -6678,8 +6732,11 @@ b { font-weight: 700; }
     '<li>按最后的盈亏排名，<b>倒数第一戴上韭菜头套</b>。为了好玩，这里买了马上就能卖（T+0），没有手续费。</li></ul>';
 
   let scr, els = {}, S = null, cfg = null, raf = 0, lastTs = 0, acc = 0, paused = false, speed = 1;
-  let logIdx = 0, feedIdx = 0, fc = null, shoutCd = 0, banner = null, settled = false, lastFlash = 0;
+  let logIdx = 0, feedIdx = 0, fc = null, shoutCd = 0, settled = false;
+  let ME = 0;          // 我在这局里的编号（单机永远是 0）
+  let NET = null;      // 联机会话
   const bubbles = {};
+  const meP = () => S.pl[ME];
 
   function loadCfg() {
     const c = App.store.get('bag_cfg', null) || {};
@@ -6720,8 +6777,11 @@ b { font-weight: 700; }
     </div>
     <div class="bh-shouts"></div>
   </div>
+  <div class="bh-conn"></div>
   <div class="overlay bh-menu"><div class="sheet bh-menu-body"></div></div>
   <div class="overlay bh-lobby"><div class="sheet bh-lobby-body"></div></div>
+  <div class="overlay bh-net"><div class="sheet bh-net-body"></div></div>
+  <div class="overlay bh-room"><div class="sheet bh-room-body"></div></div>
   <div class="overlay center clear bh-count"><div class="count-box"><div class="count-num">3</div><div class="count-info"></div></div></div>
   <div class="overlay center bh-pause"><div class="dialog"><div class="dialog-title">暂停中</div><div class="dialog-text">对手们也在等你。</div>
     <button class="btn" data-act="resume">继续</button><button class="btn ghost" data-act="quit">放弃这局</button></div></div>
@@ -6735,32 +6795,58 @@ b { font-weight: 700; }
       t2: q('.b-t2'), clock: q('.bh-clock'), price: q('.bh-price'), chg: q('.bh-chg'), state: q('.bh-state'), crowdBar: q('.bh-crowd b'), crowdTxt: q('.bh-crowd em'),
       cv: q('.bh-canvas'), banner: q('.bh-banner'), float: q('.bh-float'), table: q('.bh-table'), feed: scr.querySelectorAll('.bh-feed div'),
       cash: q('.m-cash'), pos: q('.m-pos'), pnl: q('.m-pnl'), buy: q('[data-act=buy]'), sell: q('[data-act=sell]'), run: q('[data-act=runaway]'),
-      shoutBtn: q('[data-act=shout]'), dump: q('[data-act=dump]'), shouts: q('.bh-shouts'),
+      shoutBtn: q('[data-act=shout]'), dump: q('[data-act=dump]'), shouts: q('.bh-shouts'), conn: q('.bh-conn'),
       menu: q('.bh-menu'), menuBody: q('.bh-menu-body'), lobby: q('.bh-lobby'), lobbyBody: q('.bh-lobby-body'),
+      net: q('.bh-net'), netBody: q('.bh-net-body'), room: q('.bh-room'), roomBody: q('.bh-room-body'),
       count: q('.bh-count'), countNum: q('.bh-count .count-num'), countInfo: q('.bh-count .count-info'), pause: q('.bh-pause'),
       settle: q('.bh-settle'), settleBox: q('.bh-settle-box'), vote: q('.bh-vote'), voteBody: q('.bh-vote-body'), res: q('.bh-res'), resBody: q('.bh-res-body'),
     };
     els.shouts.innerHTML = E.HUMAN_SHOUTS.map((k) => '<button data-shout="' + k + '">' + E.SHOUTS[k].human + '</button>').join('');
     scr.addEventListener('click', onClick);
     root.addEventListener('resize', () => { if (App.current === 'bag' && S) draw(); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden && App.current === 'bag' && S && !S.over && running()) doPause(); });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && NET && NET.ws && NET.ws.readyState > 1 && !NET.bye) netConnect();
+      if (document.hidden && !NET && App.current === 'bag' && S && !S.over && running()) doPause();
+    });
+    // 邀请链接：#bagholder-1234
+    const fromHash = () => {
+      const m = /^#bagholder-(\d{4})$/.exec(location.hash);
+      if (!m || NET) return;
+      if (App.current !== 'bag') App.go('bag');
+      openNet(m[1]);
+      if (App.store.get('bag_tok_' + m[1], null) && App.store.get('bag_prof', null) && serverUrl()) netStart('join'); // 刷新页面：直接回到原来的座位
+    };
+    root.addEventListener('hashchange', fromHash);
+    setTimeout(fromHash, 0);
     App.register('bag', { enter, leave });
   }
 
-  const running = () => S && !S.over && !paused && !els.count.classList.contains('show') && !els.lobby.classList.contains('show') && !els.menu.classList.contains('show');
+  const running = () => {
+    if (!S || S.over) return false;
+    if (NET) return NET.phase === 'live';
+    return !paused && !els.count.classList.contains('show') && !els.lobby.classList.contains('show') && !els.menu.classList.contains('show');
+  };
 
   function onClick(e) {
     const sh = e.target.closest('[data-shout]');
     if (sh) { doShout(sh.getAttribute('data-shout')); return; }
-    const b = e.target.closest('[data-act],[data-mode],[data-vote]');
+    const emo = e.target.closest('[data-emo]');
+    if (emo) { const pf = profile(); pf.emoji = +emo.getAttribute('data-emo'); saveProfile(pf); renderNet(); return; }
+    const b = e.target.closest('[data-act],[data-mode],[data-vote],[data-rmode]');
     if (!b || b.disabled) return;
     const mode = b.getAttribute('data-mode');
     if (mode) { if (cfg.mode !== mode || !b.classList.contains('locked')) { cfg.mode = mode; saveCfg(); App.sfx.tap(); openLobby(); } return; }
+    const rmode = b.getAttribute('data-rmode');
+    if (rmode) { netCfg({ mode: rmode }); return; }
     const v = b.getAttribute('data-vote');
     if (v != null) { pickVote(+v); return; }
     switch (b.getAttribute('data-act')) {
       case 'home': App.go('home'); break;
-      case 'pause': if (S && !S.over && !els.menu.classList.contains('show') && !els.lobby.classList.contains('show')) doPause(); else App.go('home'); break;
+      case 'pause':
+        if (NET) { if (S && !S.over && NET.phase === 'live') App.confirm('离开房间？', '这局还在进行。你的持仓会留在场上，快收盘时电脑会帮你清仓。', '离开', netLeave); else netLeave(); }
+        else if (S && !S.over && !els.menu.classList.contains('show') && !els.lobby.classList.contains('show')) doPause();
+        else App.go('home');
+        break;
       case 'resume': App.hide(els.pause); paused = false; lastTs = 0; break;
       case 'quit': App.hide(els.pause); paused = false; stopLoop(); S = null; showMenu(); break;
       case 'nminus': cfg.n0 = Math.max(3, cfg.n0 - 1); saveCfg(); App.sfx.tap(); renderMenu(); break;
@@ -6777,15 +6863,27 @@ b { font-weight: 700; }
       case 'castvote': castVote(); break;
       case 'toresult': App.hide(els.vote); showResult(); break;
       case 'share': App.share(shareText()); break;
+      // 联机
+      case 'net-open': openNet(''); break;
+      case 'net-back': App.hide(els.net); showMenu(); break;
+      case 'net-create': netStart('create'); break;
+      case 'net-join': netStart('join'); break;
+      case 'net-invite': netInvite(); break;
+      case 'net-start': if (NET) { NET.send({ t: 'start' }); App.sfx.tap(); } break;
+      case 'net-again': if (NET) { NET.send({ t: 'again' }); App.sfx.tap(); } break;
+      case 'net-leave': netLeave(); break;
+      case 'rminus': if (NET && NET.lobby) netCfg({ n0: NET.lobby.cfg.n0 - 1 }); break;
+      case 'rplus': if (NET && NET.lobby) netCfg({ n0: NET.lobby.cfg.n0 + 1 }); break;
+      case 'rlate': if (NET && NET.lobby) netCfg({ lateJoin: !NET.lobby.cfg.lateJoin }); break;
       default: break;
     }
   }
 
   // ---------- 菜单 ----------
-  function enter() { stopLoop(); S = null; showMenu(); }
-  function leave() { stopLoop(); paused = false; }
+  function enter() { if (!NET) { stopLoop(); S = null; showMenu(); } }
+  function leave() { if (!NET) { stopLoop(); paused = false; } }
   function showMenu() {
-    [els.lobby, els.res, els.vote, els.settle, els.count, els.pause].forEach(App.hide);
+    [els.lobby, els.res, els.vote, els.settle, els.count, els.pause, els.net, els.room].forEach(App.hide);
     renderMenu();
     App.show(els.menu);
     drawIdle();
@@ -6801,6 +6899,8 @@ b { font-weight: 700; }
     };
     els.menuBody.innerHTML =
       '<div class="menu-head"><div class="mascot">' + App.mascot('shock') + '</div><div><div class="menu-title">谁是接盘侠</div><div class="menu-sub">一群人炒同一只股票。都想在最高点前一刻跑，跑晚的那个，就是接盘侠。</div></div></div>' +
+      '<button class="mode-card bh-online-card" data-act="net-open"><div class="mc-title">🌐 联机房间 <span class="chip blue">内测</span></div><div class="mc-sub">和朋友开一个房间一起炒：把房间码或链接发给朋友，真人不够的座位由电脑补上。</div></button>' +
+      '<div class="bh-solo-t">单机练习</div>' +
       '<div class="bh-setting"><div><b>房间人数</b><span>含你自己，3–12 人；人越多，每个人对股价的影响越小</span></div>' +
       '<div class="bh-step"><button data-act="nminus"' + (cfg.n0 <= 3 ? ' disabled' : '') + '>−</button><b class="num">' + cfg.n0 + '</b><button data-act="nplus"' + (cfg.n0 >= 12 ? ' disabled' : '') + '>+</button></div></div>' +
       '<button class="bh-setting bh-toggle' + (cfg.lateJoin ? ' on' : '') + '" data-act="late"><div><b>中途有人进场</b><span>' + (cfg.lateJoin ? '涨起来会有 ' + lateCount(cfg.n0) + ' 个新人冲进来，人数一局里会变' : '关掉：从头到尾都是这 ' + cfg.n0 + ' 个人') + '</span></div><i></i></button>' +
@@ -6811,17 +6911,18 @@ b { font-weight: 700; }
   }
   const lateCount = (n0) => clamp(Math.round(n0 * 0.4), 1, 4);
 
-  // ---------- 开局前：看看房间里都有谁 ----------
+  // ---------- 开局前：看看房间里都有谁（单机） ----------
   function openLobby() {
     App.hide(els.menu); App.hide(els.res);
     stopLoop();
+    ME = 0;
     S = E.create({ seed: Date.now() % 2147483647, n0: cfg.n0, lateJoin: cfg.lateJoin, mode: cfg.mode });
     const m = MODES[cfg.mode];
     const seats = S.pl.filter((p) => !p.human && p.joinT <= 0);
     const late = S.pl.filter((p) => p.joinT > 0).length;
     let role = '';
     if (S.mode === 'me') {
-      role = '<div class="bh-role me"><b>🤫 你的秘密身份：庄家</b>手里有一笔 <b class="num">' + fmtQ(S.pl[0].hidden0) + '</b> 股底仓（按 10 元算本钱），可以匿名一次砸出去。图上金色虚线是<b>未来 5 秒</b>的走势（假设你不动手）。赚得最多，还别被投票揪出来。</div>';
+      role = '<div class="bh-role me"><b>🤫 你的秘密身份：庄家</b>手里有一笔 <b class="num">' + fmtQ(meP().hidden0) + '</b> 股底仓（按 10 元算本钱），可以匿名一次砸出去。图上金色虚线是<b>未来 5 秒</b>的走势（假设你不动手）。赚得最多，还别被投票揪出来。</div>';
     } else if (S.mode === 'banker') {
       role = '<div class="bh-role"><b>🕵️ 这个房间里藏着一个庄家</b>庄家能看到未来 5 秒，还会匿名砸一次盘。留意谁总能卖在最高点、谁在砸盘前先跑，收盘后投票。</div>';
     }
@@ -6847,12 +6948,12 @@ b { font-weight: 700; }
 
   // ---------- 对手的座位 ----------
   function buildTable() {
-    const ops = S.pl.filter((p) => !p.human);
+    const ops = S.pl.filter((p) => p.id !== ME);
     const cols = ops.length <= 7 ? Math.max(4, ops.length) : Math.ceil(ops.length / 2);
     els.table.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
     els.table.classList.toggle('compact', cols >= 7);
-    els.table.innerHTML = ops.map((p, i) => '<div class="bh-p' + (p.active ? '' : ' away') + (i % cols === 0 ? ' l' : i % cols === cols - 1 ? ' r' : '') + '" data-id="' + p.id + '"><div class="bh-av">' + p.emoji + '<i class="bh-q"></i></div>' +
-      '<div class="bh-bar"><i></i></div><div class="bh-nm">' + p.name + '</div><div class="bh-bub"></div></div>').join('');
+    els.table.innerHTML = ops.map((p, i) => '<div class="bh-p' + (p.active ? '' : ' away') + (p.human ? ' hm' : '') + (i % cols === 0 ? ' l' : i % cols === cols - 1 ? ' r' : '') + '" data-id="' + p.id + '"><div class="bh-av">' + esc(p.emoji) + '<i class="bh-q"></i></div>' +
+      '<div class="bh-bar"><i></i></div><div class="bh-nm">' + esc(p.name) + '</div><div class="bh-bub"></div></div>').join('');
     for (const k in bubbles) delete bubbles[k];
   }
   function cellOf(id) { return els.table.querySelector('.bh-p[data-id="' + id + '"]'); }
@@ -6871,18 +6972,18 @@ b { font-weight: 700; }
   }
 
   function resetView() {
-    logIdx = 0; feedIdx = 0; fc = null; shoutCd = 0; banner = null; settled = false;
+    logIdx = S.log.length; feedIdx = S.feed.length; fc = null; shoutCd = 0; settled = false;
     els.banner.className = 'bh-banner'; els.float.innerHTML = '';
     els.feed[0].textContent = ''; els.feed[1].textContent = '';
     els.shouts.classList.remove('show');
-    els.dump.style.display = S.mode === 'me' ? '' : 'none';
-    els.dump.disabled = false;
-    els.dump.innerHTML = '⚡ 砸盘 <span class="num">' + fmtQ(S.pl[0].hidden0) + '</span>';
-    els.t2.textContent = S.stock + ' · ' + S.code + ' · ' + MODES[S.mode].name;
+    const iAmBanker = !!meP().banker;
+    els.dump.style.display = iAmBanker ? '' : 'none';
+    els.dump.disabled = !!S.dumped;
+    els.dump.innerHTML = S.dumped ? '⚡ 已砸盘' : '⚡ 砸盘 <span class="num">' + fmtQ(meP().hidden0) + '</span>';
     updateHud();
   }
 
-  // ---------- 开盘 ----------
+  // ---------- 开盘（单机） ----------
   function startGame() {
     App.hide(els.lobby);
     App.sfx.tap();
@@ -6907,11 +7008,15 @@ b { font-weight: 700; }
     if (!lastTs) lastTs = ts;
     let dt = (ts - lastTs) / 1000; lastTs = ts;
     if (dt > 0.25) dt = 0.25;
-    if (running()) {
+    if (shoutCd > 0) shoutCd = Math.max(0, shoutCd - dt);
+    if (NET) {
+      // 联机：行情由服务器推送，这里只负责显示
+      processEvents();
+      updateHud();
+    } else if (running()) {
       acc += dt * speed;
       let n = 0;
       while (acc >= E.DT && n < 5 * speed && !S.over) { E.step(S); acc -= E.DT; n++; }
-      if (shoutCd > 0) shoutCd = Math.max(0, shoutCd - dt);
       if (S.mode === 'me' && !S.over && (!fc || S.t % 5 === 0 || n > 0 && fc.t !== S.t)) fc = { t: S.t, x: E.forecast(S, 50) };
       processEvents();
       updateHud();
@@ -6924,7 +7029,7 @@ b { font-weight: 700; }
   function processEvents() {
     for (; logIdx < S.log.length; logIdx++) {
       const r = S.log[logIdx];
-      if (r.id === 0) continue;
+      if (r.id === ME || r.kind === 'dump') continue; // 砸盘是匿名的，不能挂到庄家头上
       if (r.q < 400) continue;
       bubble(r.id, (r.side === 'buy' ? '买 ' : '卖 ') + fmtQ(r.q), r.side === 'buy' ? 'tb' : 'ts', 1100);
     }
@@ -6932,13 +7037,15 @@ b { font-weight: 700; }
       const f = S.feed[feedIdx], p = f.id != null ? S.pl[f.id] : null;
       switch (f.kind) {
         case 'shout':
-          if (p.human) floatText('📢 ' + f.text, 'shout');
-          else bubble(f.id, f.text, 'shout', 2200);
+          if (!p) break;
+          if (f.id === ME) floatText('📢 ' + f.text, 'shout');
+          else bubble(f.id, esc(f.text), 'shout', 2200);
           break;
         case 'join': {
+          if (!p) break;
           const cell = cellOf(f.id);
           if (cell) { cell.classList.remove('away'); cell.classList.add('pop'); }
-          feedLine('🚪 ' + p.name + '（' + p.tag + '）进场了');
+          if (f.id !== ME) feedLine('🚪 ' + p.name + '（' + p.tag + '）进场了');
           App.sfx.tick();
           break;
         }
@@ -6960,7 +7067,8 @@ b { font-weight: 700; }
           scr.classList.remove('shake'); void scr.offsetWidth; scr.classList.add('shake');
           break;
         case 'bust':
-          if (p.human) { App.toast('你喊完“' + E.SHOUTS[f.key].human.replace(/^\S+\s/, '') + '”就卖，被大家识破了<br>之后喊单没那么灵了', 'warn', 2600); }
+          if (!p) break;
+          if (f.id === ME) { App.toast('你喊完“' + E.SHOUTS[f.key].human.replace(/^\S+\s/, '') + '”就卖，被大家识破了<br>之后喊单没那么灵了', 'warn', 2600); }
           else feedLine('🤥 ' + p.name + ' 喊完“' + E.SHOUTS[f.key].lines[0].replace(/！$/, '') + '”就卖，被识破了');
           break;
         default: break;
@@ -6988,37 +7096,48 @@ b { font-weight: 700; }
   // ---------- 你的操作 ----------
   function humanBuy() {
     if (!running()) return;
-    const me = S.pl[0];
-    const r = E.order(S, 0, 'buy', E.LOT);
-    if (r.q > 0) { App.sfx.buy(); App.buzz(8); feedLine('你买入 ' + r.q + ' 股 @' + r.px.toFixed(2)); floatText('+' + r.q + ' @' + r.px.toFixed(2), 'buy'); }
-    if (r.queued > 0) { feedLine('涨停了，你排队买 ' + r.queued + ' 股，前面还有 ' + fmtQ(E.qSum(S.buyQ) - me.qBuy) + ' 股'); App.sfx.tick(); }
-    if (!r.q && !r.queued) App.toast(me.qBuy > 0 ? '钱都在排队的买单里了' : '钱不够了', '', 1200);
+    if (NET) { NET.send({ t: 'order', side: 'buy' }); App.sfx.tap(); return; }
+    const me = meP();
+    const r = E.order(S, ME, 'buy', E.LOT);
+    showFill('buy', r.q, r.px, r.queued, 0, r.queued ? E.qSum(S.buyQ) - me.qBuy : 0);
     updateHud();
   }
   function humanSell(all) {
     if (!running()) return;
-    const me = S.pl[0];
+    const me = meP();
+    if (me.shares - me.qSell < 100 && !me.qBuy) { App.toast(me.qSell > 0 ? '你的卖单正在跌停板上排队' : '你手里没有股票', '', 1200); return; }
+    if (NET) { NET.send({ t: 'order', side: all ? 'all' : 'sell' }); App.sfx.tap(); return; }
     const hadQ = me.qBuy;
     if (hadQ > 0) E.cancelSide(S, me, 'buy');
     const want = all ? me.shares : E.LOT;
-    if (me.shares - me.qSell < 100 && !hadQ) { App.toast(me.qSell > 0 ? '你的卖单正在跌停板上排队' : '你手里没有股票', '', 1200); return; }
-    const r = want > 0 ? E.order(S, 0, 'sell', want) : { q: 0, queued: 0 };
-    if (hadQ > 0) feedLine('撤掉了排队的 ' + hadQ + ' 股买单');
-    if (r.q > 0) { App.sfx.sell(); App.buzz(8); feedLine('你卖出 ' + r.q + ' 股 @' + r.px.toFixed(2) + (all && r.q >= me.shares + r.q - 1 ? '，清仓了' : '')); floatText('−' + r.q + ' @' + r.px.toFixed(2), 'sell'); }
-    if (r.queued > 0) { feedLine('跌停了！你排队卖 ' + r.queued + ' 股，前面还有 ' + fmtQ(E.qSum(S.sellQ) - me.qSell) + ' 股'); App.sfx.alarm(); }
+    const r = want > 0 && me.shares - me.qSell >= 100 ? E.order(S, ME, 'sell', want) : { q: 0, px: 0, queued: 0 };
+    showFill(all ? 'all' : 'sell', r.q, r.px, r.queued, hadQ, r.queued ? E.qSum(S.sellQ) - me.qSell : 0);
     updateHud();
+  }
+  // 成交回报（单机马上有，联机等服务器回）
+  function showFill(side, q, px, queued, cancelled, ahead) {
+    const me = meP();
+    if (cancelled > 0) feedLine('撤掉了排队的 ' + cancelled + ' 股买单');
+    if (side === 'buy') {
+      if (q > 0) { App.sfx.buy(); App.buzz(8); feedLine('你买入 ' + q + ' 股 @' + px.toFixed(2)); floatText('+' + q + ' @' + px.toFixed(2), 'buy'); }
+      if (queued > 0) { feedLine('涨停了，你排队买 ' + queued + ' 股，前面还有 ' + fmtQ(ahead) + ' 股'); App.sfx.tick(); }
+      if (!q && !queued) App.toast(me.qBuy > 0 ? '钱都在排队的买单里了' : '钱不够了', '', 1200);
+    } else {
+      if (q > 0) { App.sfx.sell(); App.buzz(8); feedLine('你卖出 ' + q + ' 股 @' + px.toFixed(2) + (side === 'all' && me.shares <= 0 ? '，清仓了' : '')); floatText('−' + q + ' @' + px.toFixed(2), 'sell'); }
+      if (queued > 0) { feedLine('跌停了！你排队卖 ' + queued + ' 股，前面还有 ' + fmtQ(ahead) + ' 股'); App.sfx.alarm(); }
+    }
   }
   function doShout(key) {
     els.shouts.classList.remove('show');
     if (!running()) return;
     if (shoutCd > 0) { App.toast('嗓子冒烟了，' + Math.ceil(shoutCd) + ' 秒后再喊', '', 1000); return; }
-    E.shout(S, 0, key);
+    if (NET) NET.send({ t: 'shout', key }); else E.shout(S, ME, key);
     shoutCd = 4;
     App.sfx.tap();
   }
   function humanDump() {
-    if (!running() || S.mode !== 'me' || S.dumped) return;
-    E.dump(S, 0);
+    if (!running() || !meP().banker || S.dumped) return;
+    if (NET) NET.send({ t: 'dump' }); else E.dump(S, ME);
     els.dump.disabled = true;
     els.dump.textContent = '⚡ 已砸盘';
   }
@@ -7026,7 +7145,8 @@ b { font-weight: 700; }
   // ---------- 界面数字 ----------
   function updateHud() {
     if (!S) return;
-    const F = E.features(S), p = F.p, me = S.pl[0];
+    const F = S.net ? { p: E.priceOf(S.x), sealUp: S.pub.sealUp > 0, sealQ: S.pub.sealUp, sealDown: S.pub.sealDown > 0, crowd: S.pub.crowd / 100 } : E.features(S);
+    const p = F.p, me = meP();
     const chg = (p / E.P0 - 1) * 100;
     App.setText(els.price, p.toFixed(2));
     App.setClass(els.price, 'num bh-price ' + cls(chg));
@@ -7038,7 +7158,7 @@ b { font-weight: 700; }
     // 状态：封板 / 排队
     let st = '';
     if (F.sealUp) st = '<span class="chip up pulse">封涨停 · 排队买 ' + fmtQ(F.sealQ) + ' 股</span>';
-    else if (F.sealDown) st = '<span class="chip down pulse">跌停 · 排队卖 ' + fmtQ(E.qSum(S.sellQ)) + ' 股</span>';
+    else if (F.sealDown) st = '<span class="chip down pulse">跌停 · 排队卖 ' + fmtQ(S.net ? S.pub.sealDown : E.qSum(S.sellQ)) + ' 股</span>';
     else if (p >= E.UP * 0.97) st = '<span class="chip up">逼近涨停</span>';
     else if (p <= E.DOWN * 1.03) st = '<span class="chip down">逼近跌停</span>';
     if (me.qBuy > 0) st = '<span class="chip gold">你在排队买 ' + me.qBuy + ' 股 · 点卖出可撤</span>';
@@ -7048,8 +7168,8 @@ b { font-weight: 700; }
     els.crowdBar.style.width = crowd + '%';
     els.crowdBar.className = crowd >= 75 ? 'hot' : '';
     App.setText(els.crowdTxt, crowd + '%');
-    const live = S.pl.filter((x) => x.active).length;
-    App.setText(els.t2, S.stock + ' · ' + MODES[S.mode].name + ' · ' + live + ' 人在场');
+    const live = S.net ? S.pub.live : S.pl.filter((x) => x.active).length;
+    App.setText(els.t2, NET ? '房间 ' + NET.code + ' · ' + MODES[S.mode].name + ' · ' + live + ' 人' + (NET.rtt ? ' · ' + NET.rtt + 'ms' : '') : S.stock + ' · ' + MODES[S.mode].name + ' · ' + live + ' 人在场');
     // 你的账户
     const eqv = me.cash + me.resCash + me.shares * p + me.hidden * p;
     const pnl = eqv - (E.CASH0 + me.hidden0 * E.P0);
@@ -7061,17 +7181,22 @@ b { font-weight: 700; }
     els.buy.disabled = !live2; els.sell.disabled = !live2; els.run.disabled = !live2 || (me.shares <= 0 && me.qBuy <= 0);
     els.shoutBtn.disabled = !live2;
     App.setText(els.shoutBtn, shoutCd > 0 ? '📢 ' + Math.ceil(shoutCd) + ' 秒' : '📢 喊单');
-    if (S.mode === 'me') els.dump.disabled = !live2 || S.dumped;
+    if (me.banker) els.dump.disabled = !live2 || S.dumped;
     // 对手仓位条
     for (const o of S.pl) {
-      if (o.human) continue;
+      if (o.id === ME) continue;
       const cell = cellOf(o.id);
       if (!cell) continue;
-      const ev = o.cash + o.resCash + o.shares * p;
-      const fr = ev > 0 ? Math.round(((o.shares * p) / ev) * 20) * 5 : 0;
+      let fr, qd;
+      if (S.net) { fr = o.pos || 0; qd = o.qf === 1 ? 'b' : o.qf === 2 ? 's' : ''; }
+      else {
+        const ev = o.cash - o.hidCash + o.resCash + o.shares * p;
+        fr = ev > 0 ? Math.round(((o.shares * p) / ev) * 20) * 5 : 0;
+        qd = o.qBuy > 0 ? 'b' : o.qSell > 0 ? 's' : '';
+      }
       if (cell._fr !== fr) { cell.querySelector('.bh-bar i').style.width = fr + '%'; cell.classList.toggle('in', fr >= 30); cell._fr = fr; }
-      const qd = o.qBuy > 0 ? 'b' : o.qSell > 0 ? 's' : '';
       if (cell._qd !== qd) { cell.querySelector('.bh-q').className = 'bh-q ' + qd; cell._qd = qd; }
+      if (o.active && cell.classList.contains('away')) cell.classList.remove('away');
     }
   }
 
@@ -7133,8 +7258,8 @@ b { font-weight: 700; }
       trace(); ctx.strokeStyle = half === 0 ? C.up : C.down; ctx.lineWidth = 1.8; ctx.stroke(); ctx.lineWidth = 1;
       ctx.restore();
     }
-    // 庄家的透视：未来 5 秒
-    if (fc && S.mode === 'me' && !S.over) {
+    // 庄家的透视：未来 5 秒（只有庄家自己有 fc）
+    if (fc && !S.over) {
       ctx.beginPath(); ctx.moveTo(lineEndX, yOf(last));
       fc.x.forEach((x, i) => ctx.lineTo(xOf(fc.t + i + 1), yOf(E.priceOf(x))));
       ctx.strokeStyle = C.gold; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
@@ -7158,7 +7283,7 @@ b { font-weight: 700; }
     }
     // 你的买卖点
     for (const r of S.log) {
-      if (r.id !== 0 || r.kind === 'dump') continue;
+      if (r.id !== ME || r.kind === 'dump') continue;
       const X = xOf(r.t), Y = yOf(r.px);
       ctx.fillStyle = r.side === 'buy' ? C.up : C.down;
       ctx.beginPath(); ctx.arc(X, Y, 5, 0, Math.PI * 2); ctx.fill();
@@ -7190,15 +7315,18 @@ b { font-weight: 700; }
   }
 
   // ---------- 收盘 ----------
-  function endGame() {
+  function settleOverlay(res) {
     els.shouts.classList.remove('show');
-    const res = E.settle(S);
-    updateHud();
     App.sfx.alarm();
     const kindTxt = res.kind === 'board' ? '收盘还封着涨停，第二天<b class="up">高开</b>' : res.kind === 'down' ? '收盘封死跌停，第二天<b class="down">继续低开</b>' : '热度散了，第二天开盘回到<b>“本来的价值”</b>附近（一日游）';
     els.settleBox.innerHTML = '<div class="bh-settle-t">收盘！</div><div class="bh-settle-p"><span class="num">' + res.close.toFixed(2) + '</span><i>→</i><span class="num ' + cls(res.next - res.close) + '">' + res.next.toFixed(2) + '</span></div>' +
       '<div class="bh-settle-s">' + kindTxt + '<br>手里还有股票的，都按 <b class="num">' + res.next.toFixed(2) + '</b> 结算</div>';
     App.show(els.settle);
+  }
+  function endGame() {
+    const res = E.settle(S);
+    updateHud();
+    settleOverlay(res);
     setTimeout(() => {
       App.hide(els.settle);
       if (S.mode === 'banker') showVote();
@@ -7210,7 +7338,8 @@ b { font-weight: 700; }
   // ---------- 投票揪庄家 ----------
   let votePick = null;
   function clueChips(id) {
-    const r = S.result, c = r.clues[id], vp = r.players.find((x) => x.id === id).visPnl;
+    const r = S.result, c = r.clues[id], row = r.players.find((x) => x.id === id), vp = row ? row.visPnl : 0;
+    if (!c) return '';
     const out = ['<span class="chip ' + (vp >= 0 ? 'up' : 'down') + '">明仓 ' + (vp >= 0 ? '+' : '') + fmtMoney(vp) + '</span>'];
     if (c.preDump > 0) out.push('<span class="chip gold">砸盘前 8 秒内卖了 ' + fmtQ(c.preDump) + ' 股</span>');
     if (c.topSells > 0) out.push('<span class="chip">卖在最高点附近</span>');
@@ -7218,21 +7347,23 @@ b { font-weight: 700; }
     if (!c.trades) out.push('<span class="chip">一笔没买卖</span>');
     return out.join('');
   }
+  const dumpSize = () => S.dumpQ || (S.bankerId >= 0 && S.pl[S.bankerId] ? S.pl[S.bankerId].hidden0 : 0);
   function showVote() {
     votePick = null;
-    const dumpTxt = S.dumpT >= 0 ? '第 <b>' + sec(S.dumpT) + '</b> 秒有人匿名砸出 <b>' + fmtQ(S.pl[S.bankerId].hidden0) + '</b> 股。' : '庄家这局没砸盘。';
-    if (S.mode === 'banker') {
-      els.voteBody.innerHTML = '<div class="menu-title">谁是庄家？</div><div class="menu-sub">' + dumpTxt + '投出庄家，庄家的利润充公，平分给所有散户。</div>' +
-        '<div class="bh-cands">' + S.pl.filter((p) => !p.human).map((p) => '<button class="bh-cand" data-vote="' + p.id + '"><div class="bh-av">' + p.emoji + '</div><div class="bh-cand-b"><b>' + p.name + ' <span>' + p.tag + '</span></b><div>' + clueChips(p.id) + '</div></div></button>').join('') + '</div>' +
+    const dumpTxt = S.dumpT >= 0 ? '第 <b>' + sec(S.dumpT) + '</b> 秒有人匿名砸出 <b>' + fmtQ(dumpSize()) + '</b> 股。' : '庄家这局没砸盘。';
+    const humanVotes = S.mode === 'banker' || (NET && S.mode === 'banker');
+    if (humanVotes) {
+      els.voteBody.innerHTML = '<div class="menu-title">谁是庄家？</div><div class="menu-sub">' + dumpTxt + (NET && meP().banker ? '你就是庄家：投给别人，把水搅浑。' : '投出庄家，庄家的利润充公，平分给所有散户。') + (NET ? '<br><span class="bh-vote-left"></span>' : '') + '</div>' +
+        '<div class="bh-cands">' + S.pl.filter((p) => p.id !== ME).map((p) => '<button class="bh-cand" data-vote="' + p.id + '"><div class="bh-av">' + esc(p.emoji) + '</div><div class="bh-cand-b"><b>' + esc(p.name) + ' <span>' + esc(p.tag) + '</span></b><div>' + clueChips(p.id) + '</div></div></button>').join('') + '</div>' +
         '<div class="bh-sticky"><button class="btn block" data-act="castvote" disabled>投票</button></div>';
     } else {
-      els.voteBody.innerHTML = '<div class="menu-title">大家在投票揪庄家……</div><div class="menu-sub">' + dumpTxt + '你的线索：' + clueChips(0) + '</div><div class="bh-tally"></div><button class="btn block" data-act="toresult" disabled>看结算</button>';
+      els.voteBody.innerHTML = '<div class="menu-title">大家在投票揪庄家……</div><div class="menu-sub">' + dumpTxt + '你的线索：' + clueChips(ME) + '</div><div class="bh-tally"></div><button class="btn block" data-act="toresult" disabled>看结算</button>';
       revealVotes();
     }
     App.show(els.vote);
   }
   function pickVote(id) {
-    if (S.result.vote) return;
+    if (S.result.vote || (NET && NET.voted)) return;
     votePick = id;
     els.voteBody.querySelectorAll('.bh-cand').forEach((b) => b.classList.toggle('on', +b.getAttribute('data-vote') === id));
     els.voteBody.querySelector('[data-act=castvote]').disabled = false;
@@ -7240,15 +7371,27 @@ b { font-weight: 700; }
   }
   function castVote() {
     if (votePick == null || S.result.vote) return;
+    if (NET) {
+      if (NET.voted) return;
+      NET.voted = true;
+      NET.send({ t: 'vote', pick: votePick });
+      els.voteBody.innerHTML = '<div class="menu-title">已投票</div><div class="menu-sub">你投给了 <b>' + esc(S.pl[votePick].name) + '</b>。<span class="bh-vote-wait">等其他人投完……</span></div><div class="bh-tally"></div><button class="btn block" data-act="toresult" disabled>看结算</button>';
+      return;
+    }
     E.vote(S, votePick);
     els.voteBody.innerHTML = '<div class="menu-title">开票</div><div class="menu-sub">你投给了 <b>' + S.pl[votePick].name + '</b></div><div class="bh-tally"></div><button class="btn block" data-act="toresult" disabled>看结算</button>';
     revealVotes();
   }
   function revealVotes() {
-    const v = S.result.vote, box = els.voteBody.querySelector('.bh-tally');
+    const v = S.result.vote;
+    let box = els.voteBody.querySelector('.bh-tally');
+    if (!box) {
+      els.voteBody.innerHTML = '<div class="menu-title">开票</div><div class="menu-sub">' + (votePick != null ? '你投给了 <b>' + esc(S.pl[votePick].name) + '</b>' : '你没有投票') + '</div><div class="bh-tally"></div><button class="btn block" data-act="toresult" disabled>看结算</button>';
+      box = els.voteBody.querySelector('.bh-tally');
+    }
     const ids = Object.keys(v.tally).map(Number).sort((a, b) => v.tally[b] - v.tally[a]);
     const max = Math.max(1, ...ids.map((k) => v.tally[k]));
-    box.innerHTML = ids.map((id) => '<div class="bh-trow" data-id="' + id + '"><div class="bh-av">' + S.pl[id].emoji + '</div><b>' + S.pl[id].name + '</b><i><em style="width:0"></em></i><span class="num">0</span></div>').join('');
+    box.innerHTML = ids.map((id) => '<div class="bh-trow" data-id="' + id + '"><div class="bh-av">' + esc(S.pl[id].emoji) + '</div><b>' + esc(id === ME ? '你' : S.pl[id].name) + '</b><i><em style="width:0"></em></i><span class="num">0</span></div>').join('');
     const counts = {};
     v.ballots.forEach((bl, i) => {
       setTimeout(() => {
@@ -7259,38 +7402,38 @@ b { font-weight: 700; }
       }, 250 + i * 220);
     });
     setTimeout(() => {
-      const bk = S.pl[v.bankerId];
+      const bk = S.pl[v.bankerId], iAmBanker = v.bankerId === ME;
       const row = box.querySelector('.bh-trow[data-id="' + v.bankerId + '"]');
       if (row) row.classList.add('banker');
       let msg;
-      if (S.mode === 'banker') {
-        msg = v.caught ? '🎉 揪出来了！庄家就是 <b>' + bk.name + '</b>。' + (v.split > 0 ? '庄家的利润 ' + fmtMoney(v.seized) + ' 充公，每个散户分到 <b class="up">' + fmtMoney(v.split) + '</b>' : '庄家这局本来就没赚到钱')
-          : '😈 庄家是 <b>' + bk.name + '</b>，' + (v.tie ? '平票了，' : '大家投错了，') + '庄家带着利润跑了。';
+      if (iAmBanker) msg = v.caught ? '😱 你被揪出来了！' + (v.seized > 0 ? '利润 ' + fmtMoney(v.seized) + ' 全部充公。' : '') : '😎 没人认出你！' + (v.tie ? '平票，' : '') + '利润照单全收。';
+      else {
+        msg = v.caught ? '🎉 揪出来了！庄家就是 <b>' + esc(bk.name) + '</b>。' + (v.split > 0 ? '庄家的利润 ' + fmtMoney(v.seized) + ' 充公，每个散户分到 <b class="up">' + fmtMoney(v.split) + '</b>' : '庄家这局本来就没赚到钱')
+          : '😈 庄家是 <b>' + esc(bk.name) + '</b>，' + (v.tie ? '平票了，' : '大家投错了，') + '庄家带着利润跑了。';
         if (v.caught && votePick === v.bankerId) msg += '<br>你投对了！';
-      } else {
-        msg = v.caught ? '😱 你被揪出来了！' + (v.seized > 0 ? '利润 ' + fmtMoney(v.seized) + ' 全部充公。' : '') : '😎 没人认出你！' + (v.tie ? '平票，' : '') + '利润照单全收。';
       }
+      const good = iAmBanker ? !v.caught : v.caught;
       const note = document.createElement('div');
-      note.className = 'bh-verdict ' + (v.caught === (S.mode === 'banker') ? 'good' : 'bad');
+      note.className = 'bh-verdict ' + (good ? 'good' : 'bad');
       note.innerHTML = msg;
       box.appendChild(note);
-      if (v.caught === (S.mode === 'banker')) App.sfx.good(); else App.sfx.bad();
+      if (good) App.sfx.good(); else App.sfx.bad();
       els.voteBody.querySelector('[data-act=toresult]').disabled = false;
     }, 450 + v.ballots.length * 220);
   }
 
   // ---------- 结算页 ----------
   function showResult() {
-    const res = S.result, rank = E.ranking(S), me = S.pl[0];
-    const myIdx = rank.findIndex((r) => r.id === 0), mine = rank[myIdx];
-    const lastId = rank[rank.length - 1].id, isBag = lastId === 0, isWin = myIdx === 0;
+    const res = S.result, rank = E.ranking(S);
+    const myIdx = rank.findIndex((r) => r.id === ME), mine = rank[myIdx];
+    const lastId = rank[rank.length - 1].id, isBag = lastId === ME, isWin = myIdx === 0;
     // 记录
     const st = stats();
     st.plays++; if (isWin) st.wins++; if (isBag) st.bags++;
     if (st.best == null || mine.pnl > st.best) st.best = Math.round(mine.pnl);
     if (res.vote) {
-      if (S.mode === 'banker') { st.votes++; if (res.vote.caught) st.catches++; }
-      if (S.mode === 'me') { if (res.vote.caught) st.caught++; else st.escapes++; }
+      if (res.vote.bankerId === ME) { if (res.vote.caught) st.caught++; else st.escapes++; }
+      else { st.votes++; if (res.vote.caught) st.catches++; }
     }
     App.store.set('bag_stats', st);
     const head = isBag ? '<div class="bh-res-big down">你就是接盘侠 🥬</div>' : isWin ? '<div class="bh-res-big up">全场第一！</div>' : '<div class="bh-res-big">第 ' + (myIdx + 1) + ' 名</div>';
@@ -7298,22 +7441,28 @@ b { font-weight: 700; }
       const p = S.pl[r.id], hat = r.id === lastId;
       const notes = [];
       if (p.banker) notes.push('<span class="chip gold">庄家</span>');
+      if (NET && p.human && r.id !== ME) notes.push('<span class="chip blue">真人</span>');
       if (r.held > 0) notes.push('收盘还拿着 ' + fmtQ(r.held) + ' 股');
       if (p.busted) notes.push('喊单被识破 ' + p.busted + ' 次');
       if (p.joinT > 0) notes.push('第 ' + Math.round(p.joinT) + ' 秒进场');
-      return '<div class="bh-rk' + (r.id === 0 ? ' me' : '') + (hat ? ' bag' : '') + '"><span class="num bh-rk-n">' + (i + 1) + '</span><div class="bh-av">' + p.emoji + (hat ? '<i class="bh-hat">🥬</i>' : '') + '</div>' +
-        '<div class="bh-rk-b"><b>' + p.name + (p.human ? '' : ' <span>' + p.tag + '</span>') + '</b><div>' + notes.join(' · ') + '</div></div>' +
+      return '<div class="bh-rk' + (r.id === ME ? ' me' : '') + (hat ? ' bag' : '') + '"><span class="num bh-rk-n">' + (i + 1) + '</span><div class="bh-av">' + esc(p.emoji) + (hat ? '<i class="bh-hat">🥬</i>' : '') + '</div>' +
+        '<div class="bh-rk-b"><b>' + esc(r.id === ME && NET ? p.name + '（你）' : p.name) + (p.human ? '' : ' <span>' + esc(p.tag) + '</span>') + '</b><div>' + notes.join(' · ') + '</div></div>' +
         '<div class="bh-rk-v"><b class="num ' + cls(r.pnl) + '">' + (r.pnl >= 0 ? '+' : '') + fmtMoney(r.pnl) + '</b><span class="num">' + fmtPct(r.pct, 1) + '</span></div></div>';
     }).join('');
+    const isHost = NET && NET.lobby && NET.lobby.people.some((x) => x.me && x.host);
+    const btns = NET
+      ? (isHost ? '<div class="res-btns"><button class="btn ghost" data-act="net-leave">离开房间</button><button class="btn" data-act="net-again">再来一局</button></div>'
+        : '<div class="bh-waiting">等房主开下一局……</div><button class="link-btn" data-act="net-leave">离开房间</button>')
+      : '<div class="res-btns"><button class="btn ghost" data-act="menu">换个设置</button><button class="btn" data-act="again">再来一局</button></div>';
     els.resBody.innerHTML =
       '<div class="res-head"><div class="res-mascot mascot">' + App.mascot(isBag ? 'sad' : mine.pnl >= 0 ? 'happy' : 'flat') + '</div><div>' + head +
       '<div class="res-ret num ' + cls(mine.pnl) + '">' + (mine.pnl >= 0 ? '+' : '') + fmtMoney(mine.pnl) + '</div><div class="res-eq">' + rank.length + ' 人里排第 ' + (myIdx + 1) + ' · 收益率 ' + fmtPct(mine.pct, 1) + '</div></div></div>' +
       '<div class="bh-settle-line">收盘 <b class="num">' + res.close.toFixed(2) + '</b> → 次日开盘 <b class="num">' + res.next.toFixed(2) + '</b>（' + (res.kind === 'board' ? '封板高开' : res.kind === 'down' ? '跌停低开' : '一日游') + '）· 最高 <b class="num">' + res.hi.toFixed(2) + '</b>（第 ' + Math.round(res.hiT / 10) + ' 秒）</div>' +
       '<div class="bh-rank">' + list + '</div>' +
-      '<div class="moments">' + moments().map((m) => '<div class="moment ' + m[0] + '"><b>' + m[1] + '</b><span>' + m[2] + '</span></div>').join('') + '</div>' +
-      '<div class="res-btns"><button class="btn ghost" data-act="menu">换个设置</button><button class="btn" data-act="again">再来一局</button></div>' +
+      '<div class="moments">' + moments().map((m) => '<div class="moment ' + m[0] + '"><b>' + m[1] + '</b><span>' + esc(m[2]) + '</span></div>').join('') + '</div>' +
+      btns +
       '<button class="link-btn" data-act="share">复制战报</button>' +
-      '<div class="res-note">对手都是电脑模拟的不同性格股民（正式版可以换成真人房间，或和别人的对局录像同场）。现实中喊单出货、操纵股价都是违法的。仅供娱乐。</div>';
+      '<div class="res-note">' + (NET ? '联机内测：行情、撮合和投票都在服务器上算，空座位是电脑模拟的股民。' : '对手都是电脑模拟的不同性格股民（联机房间里可以和真人一起玩）。') + '现实中喊单出货、操纵股价都是违法的。仅供娱乐。</div>';
     App.show(els.res);
     if (isWin) App.confetti(scr);
     if (isBag) App.sfx.bad(); else if (isWin) App.sfx.good();
@@ -7322,7 +7471,7 @@ b { font-weight: 700; }
   // 名场面
   function moments() {
     const res = S.result, out = [];
-    const name = (id) => (id === 0 ? '你' : S.pl[id].name);
+    const name = (id) => (id === ME ? '你' : S.pl[id].name);
     // 最先在高点附近跑的人
     const nearTop = S.log.filter((r) => r.side === 'sell' && r.kind === 'mkt' && r.q >= 500 && r.px >= res.hi * 0.97 && Math.abs(r.t - res.hiT) < 60);
     if (nearTop.length) {
@@ -7340,15 +7489,15 @@ b { font-weight: 700; }
     const busted = S.feed.filter((f) => f.kind === 'bust');
     if (busted.length) {
       const b = busted[0];
-      out.push(['gold', '喊单出货', name(b.id) + ' 第 ' + sec(b.t) + ' 秒喊完“' + (b.id === 0 ? E.SHOUTS[b.key].human.replace(/^\S+\s/, '') : E.SHOUTS[b.key].lines[0]) + '”，转手就卖。' + (busted.length > 1 ? '这局一共被识破 ' + busted.length + ' 次。' : '')]);
+      out.push(['gold', '喊单出货', name(b.id) + ' 第 ' + sec(b.t) + ' 秒喊完“' + (S.pl[b.id].human ? E.SHOUTS[b.key].human.replace(/^\S+\s/, '') : E.SHOUTS[b.key].lines[0]) + '”，转手就卖。' + (busted.length > 1 ? '这局一共被识破 ' + busted.length + ' 次。' : '')]);
     }
     // 庄家
     if (S.bankerId >= 0 && S.dumpT >= 0) {
       const c = res.clues[S.bankerId];
-      out.push(['gold', '庄家', name(S.bankerId) + (c.preDump > 0 ? ' 先在砸盘前卖掉明仓 ' + fmtQ(c.preDump) + ' 股，' : ' ') + '第 ' + sec(S.dumpT) + ' 秒匿名砸出 ' + fmtQ(S.pl[S.bankerId].hidden0) + ' 股底仓。']);
+      out.push(['gold', '庄家', name(S.bankerId) + (c && c.preDump > 0 ? ' 先在砸盘前卖掉明仓 ' + fmtQ(c.preDump) + ' 股，' : ' ') + '第 ' + sec(S.dumpT) + ' 秒匿名砸出 ' + fmtQ(dumpSize()) + ' 股底仓。']);
     }
     // 你的操作
-    const mine = S.log.filter((r) => r.id === 0 && r.kind !== 'dump');
+    const mine = S.log.filter((r) => r.id === ME && r.kind !== 'dump');
     if (mine.length) {
       const sells = mine.filter((r) => r.side === 'sell'), buys = mine.filter((r) => r.side === 'buy');
       const bestS = sells.length ? sells.reduce((a, b) => (b.px > a.px ? b : a)) : null;
@@ -7363,13 +7512,333 @@ b { font-weight: 700; }
   }
 
   function shareText() {
-    const res = S.result, rank = E.ranking(S), myIdx = rank.findIndex((r) => r.id === 0), mine = rank[myIdx];
-    const isBag = rank[rank.length - 1].id === 0;
-    return '【谁是接盘侠】' + MODES[S.mode].name + ' · ' + rank.length + ' 人房\n' + S.stock + ' 最高 ' + res.hi.toFixed(2) + '，收盘 ' + res.close.toFixed(2) + '，次日开盘 ' + res.next.toFixed(2) + '\n' +
+    const res = S.result, rank = E.ranking(S), myIdx = rank.findIndex((r) => r.id === ME), mine = rank[myIdx];
+    const isBag = rank[rank.length - 1].id === ME;
+    return '【谁是接盘侠】' + (NET ? '联机 · ' : '') + MODES[S.mode].name + ' · ' + rank.length + ' 人房\n' + S.stock + ' 最高 ' + res.hi.toFixed(2) + '，收盘 ' + res.close.toFixed(2) + '，次日开盘 ' + res.next.toFixed(2) + '\n' +
       '我排第 ' + (myIdx + 1) + ' 名，' + (mine.pnl >= 0 ? '赚了 ' : '亏了 ') + fmtMoney(Math.abs(mine.pnl)) + (isBag ? '，戴上了韭菜头套 🥬' : '') + '\n来试试你会不会接盘？';
   }
 
-  App.Bag = { init, _state: () => S, _cfg: () => cfg, _speed: (v) => { speed = v || 1; } };
+  // ======================= 联机（内测） =======================
+  function profile() {
+    const p = App.store.get('bag_prof', null);
+    if (p && p.name) return p;
+    return { name: '韭菜' + (10 + Math.floor(Math.random() * 90)), emoji: Math.floor(Math.random() * NET_EMOJIS.length) };
+  }
+  const saveProfile = (p) => App.store.set('bag_prof', p);
+  function serverUrl() {
+    try { const q = new URLSearchParams(location.search).get('ws'); if (q) return q; } catch (e) { /* ignore */ }
+    if (!/^https?:$/.test(location.protocol) || /github\.io$/i.test(location.hostname)) return null;
+    const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '');
+    return base.replace(/^http/, 'ws') + 'ws';
+  }
+  function openNet(code) {
+    [els.menu, els.lobby, els.res, els.vote].forEach(App.hide);
+    renderNet(code);
+    App.show(els.net);
+  }
+  function renderNet(code) {
+    const pf = profile(), url = serverUrl();
+    const prevCode = els.netBody.querySelector('.bh-code');
+    const codeVal = code != null && code !== '' ? code : prevCode ? prevCode.value : '';
+    const nameEl = els.netBody.querySelector('.bh-name');
+    const nameVal = nameEl ? nameEl.value : pf.name;
+    els.netBody.innerHTML =
+      '<div class="menu-title">联机房间 <span class="chip blue">内测</span></div>' +
+      '<div class="menu-sub">开一个房间，把房间码或邀请链接发给朋友。真人不够的座位由电脑股民补上；开盘后 60 秒内还能进场。</div>' +
+      (url ? '' : '<div class="bh-net-note">这个页面没有连联机服务器。联机测试请从 h7nas 草稿测试区打开「谁是接盘侠」。</div>') +
+      '<div class="bh-field"><span>昵称</span><input class="bh-name" maxlength="8" value="' + esc(nameVal) + '"></div>' +
+      '<div class="bh-emojis">' + NET_EMOJIS.map((e, i) => '<button data-emo="' + i + '" class="' + (i === pf.emoji ? 'on' : '') + '">' + e + '</button>').join('') + '</div>' +
+      '<button class="btn block" data-act="net-create"' + (url ? '' : ' disabled') + '>创建房间</button>' +
+      '<div class="bh-join"><input class="bh-code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="房间码" value="' + esc(codeVal) + '"><button class="btn ghost" data-act="net-join"' + (url ? '' : ' disabled') + '>加入</button></div>' +
+      '<button class="link-btn" data-act="net-back">返回</button>';
+  }
+  function readProfile() {
+    const pf = profile();
+    const nm = els.netBody.querySelector('.bh-name');
+    if (nm && nm.value.trim()) pf.name = nm.value.trim().slice(0, 8);
+    saveProfile(pf);
+    return pf;
+  }
+  function netStart(kind) {
+    const url = serverUrl();
+    if (!url) return;
+    const pf = readProfile();
+    let code = '';
+    if (kind === 'join') {
+      code = (els.netBody.querySelector('.bh-code').value || '').replace(/\D/g, '');
+      if (code.length !== 4) { App.toast('输入 4 位房间码', '', 1400); return; }
+    }
+    netReset(true);
+    NET = { url, kind, code, tok: code ? App.store.get('bag_tok_' + code, null) : null, name: pf.name, emoji: pf.emoji, phase: 'connecting', retry: 0, lobby: null, voted: false, bye: false, rtt: 0,
+      send(o) { if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(o)); } };
+    App.hide(els.net);
+    renderRoom();
+    App.show(els.room);
+    netConnect();
+  }
+  function netConnect() {
+    if (!NET || NET.bye) return;
+    if (NET.ws && NET.ws.readyState <= 1) return; // 已经有一条连接（或正在连），不要再开第二条
+    let ws;
+    try { ws = new WebSocket(NET.url); } catch (e) { App.toast('连不上联机服务器', 'warn'); netFail(); return; }
+    NET.ws = ws;
+    const mine = NET;
+    ws.onopen = () => {
+      if (NET !== mine) return;
+      NET.retry = 0;
+      els.conn.classList.remove('show');
+      if (NET.code) NET.send({ t: 'join', code: NET.code, tok: NET.tok, name: NET.name, emoji: NET.emoji });
+      else NET.send({ t: 'create', name: NET.name, emoji: NET.emoji });
+      clearInterval(NET.pinger);
+      NET.pinger = setInterval(() => { if (NET === mine) NET.send({ t: 'ping', c: Math.round(performance.now()) }); }, 4000);
+    };
+    ws.onmessage = (e) => { if (NET === mine) { try { onNet(JSON.parse(e.data)); } catch (err) { /* ignore */ } } };
+    ws.onclose = () => {
+      if (NET !== mine || NET.bye || NET.ws !== ws) return;
+      clearInterval(NET.pinger);
+      if (NET.retry >= 8 || !NET.code) { App.toast(NET.code ? '和服务器断开了，回到菜单' : '连不上联机服务器', 'warn', 2400); netFail(); return; }
+      NET.retry++;
+      NET.reconnecting = true;
+      els.conn.textContent = '连接断了，正在重连…'; els.conn.classList.add('show');
+      setTimeout(() => { if (NET === mine && !NET.bye) netConnect(); }, Math.min(5000, 500 * NET.retry));
+    };
+  }
+  function netFail() { netReset(true); showMenu(); }
+  function netReset(silent) {
+    if (NET) {
+      NET.bye = true;
+      clearInterval(NET.pinger); clearInterval(NET.waitTimer); clearTimeout(NET.countTimer);
+      try { NET.ws && NET.ws.close(); } catch (e) { /* ignore */ }
+    }
+    NET = null;
+    els.conn.classList.remove('show');
+    if (!silent) { stopLoop(); S = null; }
+  }
+  function netLeave() {
+    if (NET) { NET.send({ t: 'leave' }); if (NET.code) App.store.set('bag_tok_' + NET.code, null); }
+    netReset(true);
+    stopLoop(); S = null; ME = 0;
+    if (location.hash.indexOf('#bagholder-') === 0) history.replaceState(null, '', location.pathname + location.search + '#bagholder');
+    showMenu();
+  }
+  function netCfg(patch) {
+    if (!NET || !NET.lobby) return;
+    const c = Object.assign({}, NET.lobby.cfg, patch);
+    NET.send({ t: 'cfg', n0: c.n0, lateJoin: c.lateJoin, mode: c.mode });
+    App.sfx.tap();
+  }
+  function netInvite() {
+    if (!NET || !NET.code) return;
+    const link = location.origin + location.pathname + location.search + '#bagholder-' + NET.code;
+    App.share('来「谁是接盘侠」房间 ' + NET.code + ' 一起炒股，看谁接盘：\n' + link);
+  }
+
+  function renderRoom() {
+    if (!NET) return;
+    const L = NET.lobby;
+    if (!L) { els.roomBody.innerHTML = '<div class="menu-title">联机房间</div><div class="bh-waiting">正在连接服务器……</div><button class="link-btn" data-act="net-leave">取消</button>'; return; }
+    const meRow = L.people.find((p) => p.me) || {}, host = !!meRow.host;
+    const humans = L.people.filter((p) => p.online).length, bots = Math.max(0, L.cfg.n0 - humans);
+    const lateN = L.cfg.lateJoin ? clamp(Math.round(Math.max(L.cfg.n0, humans) * 0.4), 1, 4) : 0;
+    const people = L.people.map((p) => '<div class="bh-person' + (p.online ? '' : ' off') + '"><div class="bh-av">' + esc(p.emoji) + '</div><b>' + esc(p.name) + (p.me ? '（你）' : '') + '</b><span>' + (p.host ? '房主' : p.online ? '玩家' : '离线') + '</span></div>').join('') +
+      (bots ? '<div class="bh-person bot"><div class="bh-av">🤖</div><b>+' + bots + ' 个电脑</b><span>补空座位</span></div>' : '');
+    const waiting = NET.phase === 'wait';
+    let settings;
+    if (host && !waiting && L.phase === 'lobby') {
+      settings = '<div class="bh-setting"><div><b>座位</b><span>含真人，3–12 个；真人不够的由电脑补上</span></div>' +
+        '<div class="bh-step"><button data-act="rminus"' + (L.cfg.n0 <= Math.max(3, humans) ? ' disabled' : '') + '>−</button><b class="num">' + L.cfg.n0 + '</b><button data-act="rplus"' + (L.cfg.n0 >= 12 ? ' disabled' : '') + '>+</button></div></div>' +
+        '<button class="bh-setting bh-toggle' + (L.cfg.lateJoin ? ' on' : '') + '" data-act="rlate"><div><b>中途有电脑进场</b><span>' + (L.cfg.lateJoin ? '涨起来会有 ' + lateN + ' 个电脑股民冲进来' : '关掉：只有开盘时这些人') + '</span></div><i></i></button>' +
+        '<div class="bh-seg"><button data-rmode="plain" class="' + (L.cfg.mode === 'plain' ? 'on' : '') + '">抢跑局</button><button data-rmode="banker" class="' + (L.cfg.mode === 'banker' ? 'on' : '') + '"' + (L.cfg.n0 < 4 ? ' disabled' : '') + '>庄家局</button></div>' +
+        '<div class="bh-tip">' + (L.cfg.mode === 'banker' ? '🕵️ 庄家局：开盘时从所有座位里随机挑一个当庄家，可能是真人也可能是电脑。只有庄家自己知道，收盘后大家投票。' : '💡 抢跑局：没有庄家。收盘还拿着的，第二天按“一日游”价结算。') + '</div>';
+    } else {
+      settings = '<div class="bh-tip">' + L.cfg.n0 + ' 个座位 · ' + (L.cfg.mode === 'banker' ? '庄家局' : '抢跑局') + (L.cfg.lateJoin ? ' · 有电脑中途进场' : '') + '</div>';
+    }
+    let action;
+    if (waiting) action = '<div class="bh-waiting">这局已经开盘超过 60 秒，<b class="bh-wait-left num">' + (NET.waitLeft || 0) + '</b> 秒后收盘，下一局自动加入。</div>';
+    else if (L.phase !== 'lobby') action = '<div class="bh-waiting">这局正在进行……</div>';
+    else if (host) action = '<button class="btn block" data-act="net-start">开盘（' + humans + ' 个真人' + (bots ? ' + ' + bots + ' 个电脑' : '') + '）</button>';
+    else action = '<div class="bh-waiting">等房主开盘……</div>';
+    els.roomBody.innerHTML =
+      '<div class="bh-room-code"><span>房间码</span><b class="num">' + esc(L.code) + '</b></div>' +
+      '<button class="btn ghost block" data-act="net-invite">📨 邀请朋友（发房间链接）</button>' +
+      '<div class="bh-people">' + people + '</div>' + settings + action +
+      '<button class="link-btn" data-act="net-leave">离开房间</button>';
+  }
+
+  // 收到服务器的消息
+  function onNet(m) {
+    switch (m.t) {
+      case 'welcome':
+        NET.code = m.code; NET.tok = m.tok; NET.name = m.name;
+        App.store.set('bag_tok_' + m.code, m.tok);
+        if (location.hash !== '#bagholder-' + m.code) history.replaceState(null, '', location.pathname + location.search + '#bagholder-' + m.code);
+        break;
+      case 'error':
+        App.toast(esc(m.msg), 'warn', 2400);
+        if (m.code === 'NOROOM' && NET) { const code = NET.code; App.store.set('bag_tok_' + code, null); netReset(true); App.hide(els.room); openNet(code); }
+        if (m.code === 'REPLACED' && NET) { netReset(true); stopLoop(); S = null; ME = 0; showMenu(); }
+        break;
+      case 'pong': if (NET) NET.rtt = Math.max(1, Math.round(performance.now() - m.c)); break;
+      case 'lobby': {
+        NET.lobby = m;
+        if (m.phase === 'lobby') {
+          if (NET.phase === 'result' || NET.phase === 'wait' || NET.phase === 'connecting' || NET.phase === 'lobby' || NET.phase === 'vote') {
+            NET.phase = 'lobby'; NET.voted = false;
+            clearInterval(NET.waitTimer);
+            [els.res, els.vote, els.settle, els.count, els.menu, els.net].forEach(App.hide);
+            stopLoop(); S = null; drawIdle();
+            renderRoom(); App.show(els.room);
+          }
+        } else if (NET.phase === 'connecting' || NET.phase === 'lobby' || NET.phase === 'wait') renderRoom();
+        if (NET.phase === 'result' && els.res.classList.contains('show') && !S) renderRoom();
+        break;
+      }
+      case 'wait':
+        NET.phase = 'wait'; NET.waitLeft = m.left;
+        clearInterval(NET.waitTimer);
+        NET.waitTimer = setInterval(() => { if (!NET) return; NET.waitLeft = Math.max(0, NET.waitLeft - 1); const el = els.roomBody.querySelector('.bh-wait-left'); if (el) el.textContent = NET.waitLeft; }, 1000);
+        renderRoom(); App.show(els.room);
+        break;
+      case 'start': netGameStart(m); break;
+      case 'phase':
+        if (m.phase === 'live' && S) goLive();
+        break;
+      case 'k': if (S && NET.phase !== 'wait') applyTick(m); break;
+      case 'settle': if (S) netSettle(m); break;
+      case 'voted': { const el = els.voteBody.querySelector('.bh-vote-wait') || els.voteBody.querySelector('.bh-vote-left'); if (el) el.textContent = '已投 ' + m.got + '/' + m.need; break; }
+      case 'result': if (S) netResult(m); break;
+      default: break;
+    }
+  }
+  const unTrade = (a) => ({ t: a[0], id: a[1], side: a[2] > 0 ? 'buy' : 'sell', q: a[3], px: a[4], kind: a[5] === 1 ? 'qfill' : a[5] === 2 ? 'dump' : 'mkt' });
+  function mirrorPlayer(p) {
+    return { id: p.id, name: p.name, emoji: p.emoji, tag: p.tag, human: p.human, active: p.active !== false, joinT: p.joinT || 0, cash: E.CASH0, shares: 0, cost: 0, qBuy: 0, qSell: 0,
+      hidden: 0, hidden0: 0, resCash: 0, hidCash: 0, busted: 0, banker: false, pos: 0, qf: 0 };
+  }
+  function netGameStart(m) {
+    const g = m.game;
+    stopLoop();
+    ME = m.you;
+    S = { net: true, mode: g.mode, stock: g.stock, code: g.code, headline: g.headline, cfg: g.cfg, t: 0, x: 0, hx: [0], over: false, dumped: false, dumpT: -1, dumpQ: 0, bankerId: -1,
+      pl: g.players.map(mirrorPlayer), log: [], feed: [], pub: { crowd: 0, sealUp: 0, sealDown: 0, live: g.players.filter((p) => p.active).length }, result: null };
+    const me = S.pl[ME];
+    if (m.banker) { me.banker = true; me.hidden = me.hidden0 = m.hidden0; S.bankerId = ME; }
+    if (m.snap) {
+      S.t = m.snap.k; S.hx = m.snap.hx.slice(); S.x = S.hx[S.hx.length - 1];
+      S.feed = m.snap.feed || []; S.log = (m.snap.log || []).map(unTrade); S.dumped = !!m.snap.dumped; S.dumpT = m.snap.dumpT;
+      for (const f of S.feed) if (f.kind === 'dump') S.dumpQ = f.q;
+    }
+    [els.room, els.net, els.menu, els.res, els.vote, els.settle].forEach(App.hide);
+    buildTable();
+    resetView();
+    NET.voted = false;
+    raf = requestAnimationFrame(frame);
+    const live = m.phase === 'live' || (m.snap && m.startIn <= 0);
+    if (m.phase === 'vote' || m.phase === 'result') { NET.phase = m.phase; S.over = true; return; }
+    if (live) { goLive(true); return; }
+    // 倒计时
+    NET.phase = 'count';
+    App.show(els.count);
+    els.countInfo.innerHTML = me.banker ? '🤫 你是这局的庄家<br>金色虚线 = 未来 5 秒，⚡ 能匿名砸一次盘' : S.mode === 'banker' ? '🕵️ 这局有人是庄家<br>可能是真人，也可能是电脑' : '看准了再跑';
+    let n = Math.max(1, Math.ceil(m.startIn / 1000));
+    const tick = () => {
+      if (!NET || NET.phase !== 'count') return;
+      if (n > 0) { els.countNum.textContent = n; els.countNum.className = 'count-num'; App.sfx.count(); n--; NET.countTimer = setTimeout(tick, 1000); return; }
+      els.countNum.textContent = '开盘'; els.countNum.className = 'count-num up';
+    };
+    tick();
+  }
+  function goLive(late) {
+    if (!NET) return;
+    NET.phase = 'live';
+    setTimeout(() => { if (NET) NET.reconnecting = false; }, 0);
+    clearTimeout(NET.countTimer);
+    App.hide(els.count);
+    App.sfx.go();
+    const me = meP();
+    if (late && NET.reconnecting) flashBanner('🔌 重新连上了，接着炒', 'good', 2200);
+    else if (late) flashBanner(S.t > 0 ? '🚪 你中途进场了，带着 10 万现金，赶紧看盘' : '📰 ' + S.headline, 'rumor', 3200);
+    else if (me.banker) flashBanner('🤫 你是庄家：金线是未来 5 秒，⚡ 能匿名砸一次盘，别被揪出来', 'rumor', 5000);
+    else flashBanner('📰 ' + S.headline, 'rumor', 3200);
+  }
+  function applyTick(m) {
+    while (S.hx.length < m.k) S.hx.push(S.hx[S.hx.length - 1]);
+    S.hx[m.k] = m.x; S.hx.length = m.k + 1;
+    S.t = m.k; S.x = m.x;
+    let rebuild = false;
+    for (const a of m.tr) S.log.push(unTrade(a));
+    for (const e of m.ev) {
+      if (e.kind === 'join' && e.id != null) {
+        if (!S.pl[e.id] && e.p) { S.pl[e.id] = mirrorPlayer(Object.assign({ id: e.id, active: true }, e.p)); rebuild = true; }
+        if (S.pl[e.id]) S.pl[e.id].active = true;
+      }
+      if (e.kind === 'dump') { S.dumped = true; S.dumpT = e.t; S.dumpQ = e.q; }
+      S.feed.push(e);
+    }
+    if (rebuild) { buildTable(); for (const o of S.pl) { const c = cellOf(o.id); if (c) c._fr = -1; } }
+    S.pub = { crowd: m.pub[0], sealUp: m.pub[1], sealDown: m.pub[2], live: m.pub[3] };
+    if (m.me) { const a = m.me, me = meP(); me.cash = a[0]; me.shares = a[1]; me.cost = a[2]; me.qBuy = a[3]; me.qSell = a[4]; me.hidden = a[5]; me.resCash = a[6]; me.hidCash = a[7]; me.busted = a[8]; }
+    if (m.pos) m.pos.forEach((a, i) => { if (S.pl[i]) { S.pl[i].pos = a[0]; S.pl[i].qf = a[1]; } });
+    if (m.fc) fc = { t: m.k, x: m.fc };
+    if (m.f) for (const f of m.f) showFill(f[0], f[1], f[2], f[3], f[4], f[5]);
+    if (NET.phase !== 'live' && m.k > 0 && !S.over) goLive();
+    if (m.k >= E.TICKS) S.over = true;
+  }
+  function netSettle(m) {
+    S.over = true;
+    NET.phase = m.vote ? 'vote' : 'settle';
+    fc = null;
+    const r = m.res;
+    S.dumpT = r.dumpT; if (r.dumpQ) S.dumpQ = r.dumpQ;
+    S.result = { close: r.close, next: r.next, kind: r.kind, hi: r.hi, hiT: r.hiT, lo: r.lo, loT: r.loT, sealUpQ: r.sealUpQ, sealDownQ: r.sealDownQ, clues: r.clues,
+      players: Object.keys(r.visPnl).map((id) => ({ id: +id, visPnl: r.visPnl[id], pnl: 0, pct: 0, held: 0 })), vote: null };
+    processEvents();
+    updateHud();
+    if (m.again) { // 重连回来：直接进投票或等结果
+      if (m.vote) { showVote(); markVoteLeft(m.voteSec); }
+      return;
+    }
+    settleOverlay(S.result);
+    NET.settleAt = Date.now();
+    setTimeout(() => {
+      if (!NET || !S) return;
+      App.hide(els.settle);
+      if (m.vote && NET.phase === 'vote') { showVote(); markVoteLeft(m.voteSec - 3); }
+      else if (NET.pendingResult) { const pr = NET.pendingResult; NET.pendingResult = null; netResult(pr); }
+    }, 2600);
+  }
+  function markVoteLeft(secs) {
+    let left = Math.max(1, Math.round(secs));
+    const el = () => els.voteBody.querySelector('.bh-vote-left');
+    if (el()) el().textContent = left + ' 秒内投票';
+    clearInterval(NET.waitTimer);
+    NET.waitTimer = setInterval(() => { left = Math.max(0, left - 1); if (el()) el().textContent = left + ' 秒内投票'; if (!left) clearInterval(NET.waitTimer); }, 1000);
+  }
+  function netResult(m) {
+    if (NET.settleAt && Date.now() - NET.settleAt < 2500 && els.settle.classList.contains('show')) { NET.pendingResult = m; return; }
+    clearInterval(NET.waitTimer);
+    NET.phase = 'result';
+    const R = S.result || {};
+    R.players = m.res.players;
+    R.vote = m.res.vote;
+    S.result = R;
+    S.bankerId = m.bankerId;
+    if (m.bankerId >= 0 && S.pl[m.bankerId]) { S.pl[m.bankerId].banker = true; S.pl[m.bankerId].hidden0 = m.hidden0; }
+    (m.busted || []).forEach((b, i) => { if (S.pl[i]) S.pl[i].busted = b; });
+    S.log = m.log.map(unTrade);
+    logIdx = S.log.length;
+    App.hide(els.settle);
+    if (R.vote) {
+      if (!els.vote.classList.contains('show')) showVoteShell();
+      revealVotes();
+    } else showResult();
+  }
+  function showVoteShell() {
+    els.voteBody.innerHTML = '<div class="menu-title">开票</div><div class="menu-sub">' + (votePick != null ? '你投给了 <b>' + esc(S.pl[votePick].name) + '</b>' : '投票结束') + '</div><div class="bh-tally"></div><button class="btn block" data-act="toresult" disabled>看结算</button>';
+    App.show(els.vote);
+  }
+
+  App.Bag = { init, _state: () => S, _cfg: () => cfg, _speed: (v) => { speed = v || 1; }, _net: () => NET, _me: () => ME };
 })(window);
 
 </script>
